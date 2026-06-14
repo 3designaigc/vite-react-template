@@ -120,7 +120,7 @@ const web3dEntries: Entry[] = [
 		id: "journal-index",
 		label: "JOURNAL_INDEX",
 		title: "JOURNAL_INDEX 第二層入口",
-		src: "/HTML/Journal_Index.html",
+		src: "/HTML/Journal_Index_Web3D.html",
 		kind: "web3d",
 		description: "集中管理 Web3D / GLB / IFC / 類 4D 動態頁。",
 		accent: "red",
