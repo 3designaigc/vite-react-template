@@ -118,8 +118,8 @@ const pdfEntries: Entry[] = [
 const web3dEntries: Entry[] = [
 	{
 		id: "journal-index",
-		label: "Journal Index",
-		title: "PP02 第二層 Web3D 入口",
+		label: "JOURNAL_INDEX",
+		title: "JOURNAL_INDEX 第二層入口",
 		src: "/HTML/Journal_Index.html",
 		kind: "web3d",
 		description: "集中管理 Web3D / GLB / IFC / 類 4D 動態頁。",
