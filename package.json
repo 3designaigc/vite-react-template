@@ -37,7 +37,8 @@
 		"build": "tsc -b && vite build",
 		"cf-typegen": "wrangler types",
 		"check": "tsc && vite build && wrangler deploy --dry-run",
-		"deploy": "wrangler deploy",
+		"deploy": "npm run build && wrangler deploy --config wrangler.assets.json",
+		"deploy:plugin": "wrangler deploy",
 		"dev": "vite",
 		"lint": "eslint .",
 		"preview": "npm run build && vite preview"
