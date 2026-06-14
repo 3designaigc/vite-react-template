@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web.3D</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC&family=Oswald&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .top, .bottom {
+            flex: 0 0 10%;
+            background-color: #f1f1f1;
+            text-align: left;
+            padding: 10px;
+            box-sizing: border-box;
+            font-family: 'Oswald', sans-serif;
+        }
+        .middle {
+            flex: 1;
+            overflow: hidden;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .link {
+            display: inline-block;
+            margin: 0 10px;
+        }
+        h2 {
+            display: inline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="top">
+            <h2>Web.3D</h2>
+            <div class="link"><a href="Journal_Web.html" target="content">靜態</a></div>
+            <div class="link"><a href="Journal_WebAni.html" target="content">動態</a></div>
+			<div class="link"><a href="Web\threeJS4_fixed.html" target="content">GLB</a></div>
+			<div class="link"><a href="Web\GLB_IFC_http_server_viewer.html" target="content">IFC</a></div>
+			<div class="link"><a href="web\PPj.YY3DW_web3d.html" target="content">技術整理</a></div>
+
+		
+        </div>
+        <div class="middle">
+            <iframe src="web\PPj.YY3DW_web3d.html" name="content"></iframe>
+        </div>
+    </div>
+</body>
+</html>

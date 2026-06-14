@@ -1,0 +1,1926 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="utf-8">
+    <title>2026 BlenderBIM 簡報</title>
+    <meta name="description" content="2026 BlenderBIM 簡報 - reveal.js 轉換版">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/theme/black.min.css" id="theme">
+    
+    <!-- Custom styling for background, searchability, and bottom drawer -->
+    <style>
+        .reveal .slides {
+            text-align: left;
+        }
+        
+        /* Make text screen-reader friendly and searchable but invisible */
+        .searchable-text {
+            opacity: 0.0001;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            color: transparent;
+            font-size: 1rem;
+            white-space: pre-wrap;
+            overflow: hidden;
+        }
+        
+        /* Toggle button for slide sorter drawer */
+        .drawer-toggle {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(40, 44, 52, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-family: 'Inter', system-ui, sans-serif;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .drawer-toggle:hover {
+            background: rgba(58, 64, 76, 0.95);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .drawer-toggle svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+        
+        /* Bottom sliding drawer panel */
+        .slide-drawer {
+            position: fixed;
+            bottom: -280px;
+            left: 0;
+            width: 100%;
+            height: 250px;
+            background: rgba(18, 20, 24, 0.92);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 99;
+            transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            padding: 15px 20px;
+            box-sizing: border-box;
+        }
+        
+        .slide-drawer.open {
+            bottom: 0;
+        }
+        
+        .drawer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #ffffff;
+            margin-bottom: 12px;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+        
+        .drawer-title {
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .drawer-close {
+            background: none;
+            border: none;
+            color: #a0aec0;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px;
+        }
+        
+        .drawer-close:hover {
+            color: #ffffff;
+        }
+        
+        /* Horizontal scroll list of slides */
+        .drawer-items {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding-bottom: 10px;
+            scroll-behavior: smooth;
+        }
+        
+        /* Custom scrollbar for drawer items */
+        .drawer-items::-webkit-scrollbar {
+            height: 6px;
+        }
+        .drawer-items::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+        }
+        .drawer-items::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+        .drawer-items::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+        
+        .drawer-item {
+            flex: 0 0 240px;
+            height: 135px;
+            position: relative;
+            cursor: pointer;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+            background: #000;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .drawer-item:hover {
+            transform: scale(1.04);
+            border-color: #3b82f6;
+        }
+        
+        .drawer-item.active {
+            border-color: #3b82f6;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+        
+        .drawer-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .drawer-slide-number {
+            position: absolute;
+            bottom: 6px;
+            right: 6px;
+            background: rgba(0, 0, 0, 0.75);
+            color: #ffffff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: monospace;
+        }
+        
+        /* Slide Jump Box in Control Panel */
+        .jump-box-container {
+            position: fixed;
+            bottom: 20px;
+            right: 80px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(40, 44, 52, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 4px 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .jump-input {
+            width: 40px;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+            color: white;
+            text-align: center;
+            font-size: 14px;
+            outline: none;
+            font-family: monospace;
+        }
+        
+        .jump-text {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+
+            <section data-background-image="reveal_assets/images/Slide1.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    BIM<br>2026/4/16<br>Bonsai<br>從建築資訊模型邁向數位孿生<br>盧鼎鈞  林明凱<br>to Digital Twin
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide2.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    BIM<br>2026/4/16<br>出圖<br>估算<br>Building Information Modeling<br>建築資訊模型
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide3.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    BIM<br>2026/4/16<br>Bonsai<br>不是它免費，是它 自由且專業<br>Building Information Modeling<br>建築資訊模型
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide4.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    IFC<br>2026/4/16<br>Bonsai
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide5.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                       IFC<br>2026/4/16<br>IFC<br>ISO 16739-1:2024）<br>行業基礎分類（IFC）是用於共享建築資產行業數據的開放國際標準。該標準包括：<br>模式（以文字形式提供）<br>文件（以 HTML 格式提供，以 Markdown 格式編寫）<br>屬性和數量集定義（模式中實現的可擴展機制的標準化定義 - 以 XML 形式提供，並在 HTML 文件中提供）<br>資料檔案的交換或序列化機制
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide6.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                       IFC<br>2026/4/16<br>IFC<br>亂
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide7.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>2026/4/16<br>https://www.buildingsmart.org/<br>buildingSMART是全球建築資產產業數位轉型領域的產業組織。 buildingSMART致力於透過制定和採用開放的國際標準和解決方案，為基礎設施和建築業帶來改進。
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide8.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                       IFC<br>2026/4/16<br>IFC<br>PDF<br>≠
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide9.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                       IFC<br>2026/4/16<br>IFC<br>再編輯再利用<br>建築生命週期
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide10.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                       IFC<br>C<br>IF<br>2026/4/16<br>IFC
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide11.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                       IF<br>Can<br>2026/4/16<br>IF<br>C
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide12.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    2026/4/16<br>Bonsai<br>3D Max(Vray)<br>IFC Viewer<br>Revit<br>Digital Twin
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide13.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                       IFC<br>2026/4/16<br>IFC
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide14.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                       IFC<br>2026/4/16<br>IFC<br>+MCP<br>AIGC<br>請幫我以 樓層為單位，個別存成 獨立的 IFC 檔
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide15.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                       IFC<br>2026/4/16<br>檢視和探索IFC模型，包括空間、屬性和關係<br>直接從 IFC 資料編輯和提取屬性、特性和元數據<br>在保持IFC語意的前提下，移動、旋轉和修改物件的幾何形狀<br>使用預先定義的庫元素或自訂參數類型建立新對象<br>管理分類系統、文件參考文獻，並連結到外部圖書館<br>產生具有自訂註釋的2D繪圖視圖，例如平面圖、剖面圖和立面圖<br>研究和編輯結構分析模型，並支援各種鋼材型材。<br>建模和管理複雜的分配系統，例如暖通空調、給排水和電氣（MEP）系統<br>制定施工進度計劃，進行關鍵路徑分析，並產生序列動畫。<br>從模型元素中匯出數量，並使用公式建立成本表。<br>執行衝突偵測和模型協調，管理跨學科問題<br>整合成本會計、進度安排和資產管理等非幾何數據<br>Bonsai<br>IFC
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide16.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                       IFC<br>2026/4/16<br>檢視和探索IFC模型，包括空間、屬性和關係<br>直接從 IFC 資料編輯和提取屬性、特性和元數據<br>在保持IFC語意的前提下，移動、旋轉和修改物件的幾何形狀<br>使用預先定義的庫元素或自訂參數類型建立新對象<br>管理分類系統、文件參考文獻，並連結到外部圖書館<br>產生具有自訂註釋的2D繪圖視圖，例如平面圖、剖面圖和立面圖<br>研究和編輯結構分析模型，並支援各種鋼材型材。<br>建模和管理複雜的分配系統，例如暖通空調、給排水和電氣（MEP）系統<br>制定施工進度計劃，進行關鍵路徑分析，並產生序列動畫。<br>從模型元素中匯出數量，並使用公式建立成本表。<br>執行衝突偵測和模型協調，管理跨學科問題<br>整合成本會計、進度安排和資產管理等非幾何數據<br>Bonsai<br>IFC
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide17.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    2D 3D4D 5D<br>2026/4/16<br>檢視和探索IFC模型，包括空間、屬性和關係<br>直接從 IFC 資料編輯和提取屬性、特性和元數據<br>在保持IFC語意的前提下，移動、旋轉和修改物件的幾何形狀<br>使用預先定義的庫元素或自訂參數類型建立新對象<br>管理分類系統、文件參考文獻，並連結到外部圖書館<br>產生具有自訂註釋的二維繪圖視圖，例如平面圖、剖面圖和立面圖<br>研究和編輯結構分析模型，並支援各種鋼材型材。<br>建模和管理複雜的分配系統，例如暖通空調、給排水和電氣（MEP）系統<br>制定施工進度計劃，進行關鍵路徑分析，並產生序列動畫。<br>從模型元素中匯出數量，並使用公式建立成本表。<br>執行衝突偵測和模型協調，管理跨學科問題<br>整合成本會計、進度安排和資產管理等非幾何數據
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide18.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>2026/4/16<br>3D<br>Model / Material/ Rendering<br>目前已知的 唯一  具有建築設計應用全功能 軟體
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide19.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide20.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>4D<br>2026/4/16<br>Scheduling
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide21.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    以 安藤忠雄 光之教堂 為 案例整合<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide22.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>2011 教學案例<br>資料夠完整<br>檔案 夠小<br>造型簡單 好看 辯識度好<br>2026/4/16<br>2026/1/8<br>E:\Resilio\Queen\Projects\TCOL\revit\2026
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide23.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    Blender Bonsai<br>直接讀取及編輯IFC<br>2026/4/16<br>2026/1/14<br>Projects\建研所AI專案\Data\TCOL\
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide24.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    ObjectType &amp;Tag  類型&amp;標籤<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide25.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    架構<br>2026/4/16<br>流程
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide26.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    IFC 2X3 to IFC4<br>如果 IFC 模型為 IFC 2X3  建議轉成IFC 4 格式<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide27.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>2026/4/16<br>流程
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide28.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    IFC分析 : AIGC <br>分析 TCOL0111_01 .ifc|<br>尺寸:幫我把 整理門窗 尺寸<br>進度表:幫我利用 ObjectType 跟 Tag 做成個工程進度表<br>Prompt :<br>你是個 BIM的 專家，請你幫我 針對這個IFC 檔案進行分析，要有數量計算，面積，體積等。並以精美且專業的 HTML 方式輸出，深色系，並要有動態效果<br>2026/4/16<br>IFC分析 : AIGC
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide29.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    分析 0306_2X3A .ifc<br>分析<br>尺寸<br>進度表<br>2026/4/16<br>Prompt : 請幫我分析 IFC 檔案，並以 HTML 格式輸出<br>AIGC/AIGCWiki/HTML/Bonsai/Data/TCOL_Claude.html
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide30.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    分析 0306_2X3A .ifc<br>分析<br>尺寸<br>進度表<br>2026/4/16<br>Prompt : 請幫我針對此IFC檔，分析門窗規格及數量
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide31.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    分析 TCOL0111_01 .ifc|<br>分析<br>尺寸<br>進度表(Excel)<br>2026/4/16<br>Prompt :幫我利用 ObjectType 跟 Tag 做成個工程進度表
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide32.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide33.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    輸出<br>2026/4/16<br>Excel (CSV)<br>PDF<br>PDF
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide34.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    依照著個表格 在Blender 建立 costing and Scheduling 應用<br>2026/4/16<br>依照著個表格 在Blender 建立 costing and Scheduling 應用，<br>畫面 第二格
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide35.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide36.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    專案設置<br>Bonsai BIM 製作過程非常嚴謹<br>必須做好 命名規劃<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide37.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    工班設定<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide38.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    Excel 進度表 規劃<br>2026/4/16<br>L:\AIGC\Projects\建研所AI專案\Data\TCOL\ schedule.excl
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide39.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>時程控制<br>IfctaskTime.scheduleStart<br>IfctaskTime.scheduleFinish<br>IfctaskTime.scheduleDuration<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide40.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    4D 進度項目與物件的對應設定<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide41.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    進度表 應用 <br>2026/4/16<br>進度表 應用
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide42.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    動畫設定及輸出<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide43.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide44.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    Timeline &amp; 4D camera<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide45.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>2026/4/16<br>技巧 ，先將 4D Camera  放置 0,0,0，調整 跟 TimeLine 設定 Link 後 ，再移動
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide46.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    Task Bars 設定<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide47.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    Blender Rendering 合成輸出<br>一氣呵成的 流程<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide48.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    Output<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide49.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide50.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide51.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    Pixar RenderMan<br>2026/4/16<br>Blender 是 電影等級3D畫圖軟體
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide52.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    OpenUSD 架構(NVIDIA Omniverse)<br>2026/4/16<br>Digital Twin
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide53.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    Light<br>HDRI<br>Sky texture<br>2026/4/16<br>設計視覺化 視覺化設計
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide54.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    Rendering Engine : Cycle <br>2026/4/16<br>Rendering Engine : Cycle<br>Shadow GI (Global Illumination)
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide55.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    Matereial : PBR System<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide56.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    Material : Concrete(節典式)<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide57.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    Rendering :Cycle <br>2026/4/16<br>Rendering :Cycle
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide58.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    Rendering EEVEE : 即時顯示系統(GPU)<br>2026/4/16<br>Cycle<br>EEVEE
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide59.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    2026/4/16<br>Blender Cycle 直出
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide60.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    2026/4/16<br>Blender Cycle 直出
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide61.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>2026/4/16<br>Blender Cycle 直出
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide62.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    Sky Texture (日光動態模擬)<br>2026/4/16<br>F:\Resilio\AIGC\Projects\ArtDesign\Blender\SUN_Ani.blend
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide63.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide64.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide65.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>2026/4/16<br>數量提取及 輸出
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide66.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>估算要有數據可以捉取<br>物件必須透過 Qto 轉換<br>未經轉換，並不會有數據<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide67.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    IFC.file<br>IFC 匯入檔案 ，亦可透過 Qto 轉換取的數據。<br>2026/4/16<br>但 每個物件 都需轉換，對於匯入之IFC 。就是一件 複雜 的流程。
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide68.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    將Revit 性質選項 整合至 IFC<br>Revit 性質選項 匯出<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide69.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    Revit 匯出 IFC 之流程<br>2X3 協調視圖設置<br>匯出 Revit 性質集<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide70.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    Bonsai 可讀取含有 Revit 性質資訊之 IFC 檔<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide71.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    Collaboration 協作<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide72.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    Web  http://127.0.0.1:1104/<br>可存成 CSV 透過 Excel 整合<br>基本牆<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide73.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    窗資訊<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide74.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>2026/4/16<br>製作 : 盧鼎鈞<br>報告 : 林明凱
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide75.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide76.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide77.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide78.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide79.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide80.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide81.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide82.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide83.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide84.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide85.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide86.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide87.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide88.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide89.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    MCP<br>2026/4/16<br>Bonsai<br>透過 LLM 來驅動 自動化流程
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide90.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    MCP<br>2026/4/16<br>透過 LLM 來驅動 自動化流程<br>AIGC to BIM 最關鍵的技術應用<br>MCP（Model Context Protocol，模型上下文協定）是由 Anthropic 於 2024 年底推出的開放通訊協定，旨在為 AI 模型建立標準化的「工具連接器」。它像 AI 的 USB-C 介面，讓大模型能安全地存取本地檔案、數據庫、API 等外部數據，將 AI 從僅能對話的機器轉變為能動態獲取資訊並執行操作的代理 (Agent)。
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide91.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    MCP<br>2026/4/16<br>透過 LLM 來驅動 自動化流程<br>Blender<br>Rhino<br>Unreal Engine
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide92.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    MCP<br>2026/4/16<br>透過 LLM 來驅動 自動化流程<br>Anthropic _ Claude<br>OpenAI_Codex<br>Google _ Antigravity
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide93.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    MCP<br>2026/4/16<br>透過 LLM 來驅動 自動化流程<br>SKILL<br>教導 AI Agent 如何以可重複方式執行特定任務的指令集合 (可控性)
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide94.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    MCP 測試_Claude<br>2026/4/16<br>幫我透過 Bonsai 開啟  L:\AIGC\Projects\ArtDesign\IFC\0306_2x3A.ifc 並轉換為 IFC4 架構
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide95.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    增加 排程表<br>2026/4/16<br>幫我在   Costing and Scheduling 的 Work   Scheduling 增加TCOL 專案<br>並利用 這張圖幫我 設定 Costing and Scheduling 的 Construction Scheduling<br>L:\AIGC\Projects\ArtDesign\DOC\IfcWorkSchedule_Properties.xlex
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide96.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>2026/4/16<br>透過 Tag 將 任務對應到 物件,窗戶 以 尺寸方式 對應 並 在Animation Tools 功能中，以 Frame-based  5 = 1W 製作動畫
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide97.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    Task Bars<br>2026/4/16<br>選取有動畫之物件 ，幫我完成 Task Bars 工作
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide98.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    MCP 的應用及趨勢  <br>只要修改及調整表格，動畫就修改好<br>MCP 在本案例應用不是從頭到尾的 自動建立而是 建立後的 自動調整(修改)。<br>目前 還很初階 。未來應用卻可觀。尤其是 Openclaw 所帶來的改變<br>2026/4/16<br>MCP 的應用及趨勢
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide99.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    Midjourney2022 ~2026MCP where ??<br>2026/4/16<br>V8
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide100.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    2026/4/16<br>Digital Twin
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide101.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    2026/4/16<br>VFX Physics simulation<br>Wind Tunnel Testing<br>風洞測試
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide102.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    請幫我 模擬 建築 的 風洞試驗<br>MCP<br>2026/4/16<br>2026/3/31
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide103.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>風的 方向 以 cursor 逆時鐘方向 旋轉60 度<br>箭頭方向有誤<br>跟建築物要有碰撞關係<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide104.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>風個 箭頭 為何 會指 向上 ??<br>Prompt : 幫我調整 箭頭方向<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide105.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide106.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide107.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>拉高 經度<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide108.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    方向性<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide109.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    煙 測試 (風洞)  手動<br>域 設定<br>煙 發射器<br>風力<br>Rendering<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide110.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    煙 發射器<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide111.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    風力<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide112.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    碰種 效果器<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide113.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    材質 <br>EEVEE<br>Cycle<br>2026/4/16<br>材質
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide114.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    TCOL 風洞<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide115.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide116.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide117.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                     <br>Color<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide118.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide119.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    RENDERING<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide120.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    2026/4/16<br>Digital Twin
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide121.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    林 明凱<br>0937860022<br>vizken@3design.biz<br>騰煇企業(GRC) 設計顧問<br>AIGC Design 到工程應用 (BIM 視覺整合 VR/AR)
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide122.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    繪圖<br>數位<br>設計<br>Digital<br>Design<br>Draw
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide123.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    Digital<br>Design<br>Draw
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide124.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    3Design.Biz<br>Digital.Design.Draw<br>Building<br>2023
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide125.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide126.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>多應用、多用戶同步協作，適用於複雜的工作流程，而且可以隨時隨地進行。這得歸功於皮克斯的通用場景描述（USD）技術。<br>NVIDIA Omniverse 為當今現有的 3D 工作流程帶來無縫協作和增強的效能。<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide127.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    原下載 方式 已棄用<br>NVIDIA Omniverse Launcher 已在 2025/10/1 正式 Deprecated，而且 Launcher 安裝檔不再提供下載、Exchange 也不能再用來安裝 App。所以你現在（2025/12）要「新裝 Omniverse」，正確路徑是 NGC + GitHub（Kit SDK / Kit App Template）。<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide128.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    Git 安裝 (Powershell)<br>Git 安裝  (Powershell)<br>winget install --id Git.Git -e<br>2026/4/16<br>winget install --id git.git -e<br>GIT 檢查<br>RTX 3070 以上顯卡
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide129.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    Omniverse 安裝<br>https://docs.omniverse.nvidia.com/services/latest/developer/app_template.html<br>https://github.com/NVIDIA-Omniverse/kit-app-template<br>git clone https://github.com/NVIDIA-Omniverse/kit-app-template.git<br>cd kit-app-template<br>.\repo.bat template new(windows)<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide130.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    Omniverse 安裝<br>https://docs.omniverse.nvidia.com/services/latest/developer/app_template.html<br>https://github.com/NVIDIA-Omniverse/kit-app-template<br>git clone https://github.com/NVIDIA-Omniverse/kit-app-template.git.\repo.bat template new(windows)<br>.\repo.bat build<br>.\repo.bat launch<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide131.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>? Select with arrow keys what you want to create: Application<br>? Select with arrow keys your desired template: Kit Service<br>? Enter name of application .kit file [name-spaced, lowercase, alphanumeric]: [set application name]<br>? Enter application_display_name: [set application display name]<br>? Enter version:: [set application version]<br>The application template you have selected requires a setup extension.<br>Setup Extension -&gt; kit_service_setup<br>? Enter name of extension [name-spaced, lowercase, alphanumeric]: [set extension name]_setup_extension<br>? Enter extension_display_name: [set extension display name] Setup Extension<br>? Enter version: [set extension version]<br>2026/4/16<br>使用方向鍵選擇要建立的內容：應用程式<br>使用方向鍵選擇所需的模板：工具包服務<br>輸入應用程式 .kit 檔案的名稱（命名空間，小寫，字母數字）：[設定應用程式名稱]<br>輸入 application_display_name：[設定應用程式顯示名稱]<br>輸入 version：[設定應用程式版本]您選擇的應用程式模板需要安裝擴充功能。安裝擴充功能 -&gt; kit_service_setup輸入擴充功能的名稱（命名空間，小寫，字母數字）：[設定擴充功能名稱]_setup_extension輸入 extension_display_name：[設定擴充功能顯示名稱] 安裝擴充功能輸入 version：[設定擴充功能版本]<br>2025/12/23
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide132.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    .\repo.bat build<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide133.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    .\repo.bat launch<br>開啟<br>cd kit-app-template<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide134.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    啟動畫面<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide135.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide136.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide137.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>E:\Resilio\Queen\Projects\TCOL\revit\2026<br>0108_24.01.rvt<br>IFC<br>0605_01.ifc<br>2026/4/16<br>2026/1/8
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide138.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    Blender Bonsai<br>Blender \IFC260108_01.blend<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide139.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    Omniverse<br>2026/4/16<br>2026/1/8
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide140.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    TCOL<br>2026/4/16<br>交換 格式<br>IFC<br>USD<br>USD<br>IFC
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide141.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>2026/4/16<br>Blender<br>Omniverse
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide142.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    當代 最強 最簡單 的 3D渲染架構(燈光 質感)<br>2026/4/16
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide143.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>TIME<br>4 hr vs Realtime<br>NVIDIA RTX A6000<br>2026/4/16<br>CPU : I5/ Nvidia : 1050/ Ram  32g
+                </div>
+            </section>
+
+            <section data-background-image="reveal_assets/images/Slide144.PNG" data-background-size="contain" data-background-repeat="no-repeat">
+                <div class="searchable-text">
+                    <br>2026/4/16
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Toggle button for Slide Drawer -->
+    <button class="drawer-toggle" onclick="toggleDrawer()">
+        <svg viewBox="0 0 24 24">
+            <path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/>
+        </svg>
+        <span>跳頁導覽</span>
+    </button>
+
+    <!-- Bottom sliding drawer panel -->
+    <div class="slide-drawer" id="slideDrawer">
+        <div class="drawer-header">
+            <div class="drawer-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/>
+                </svg>
+                <span>投影片縮圖 (點選跳頁)</span>
+            </div>
+            <button class="drawer-close" onclick="toggleDrawer()">✕</button>
+        </div>
+        <div class="drawer-items" id="drawerItems">
+
+            <div class="drawer-item" onclick="jumpToSlide(0)">
+                <img src="reveal_assets/images/Slide1.PNG" loading="lazy" alt="Slide 1">
+                <div class="drawer-slide-number">1</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(1)">
+                <img src="reveal_assets/images/Slide2.PNG" loading="lazy" alt="Slide 2">
+                <div class="drawer-slide-number">2</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(2)">
+                <img src="reveal_assets/images/Slide3.PNG" loading="lazy" alt="Slide 3">
+                <div class="drawer-slide-number">3</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(3)">
+                <img src="reveal_assets/images/Slide4.PNG" loading="lazy" alt="Slide 4">
+                <div class="drawer-slide-number">4</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(4)">
+                <img src="reveal_assets/images/Slide5.PNG" loading="lazy" alt="Slide 5">
+                <div class="drawer-slide-number">5</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(5)">
+                <img src="reveal_assets/images/Slide6.PNG" loading="lazy" alt="Slide 6">
+                <div class="drawer-slide-number">6</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(6)">
+                <img src="reveal_assets/images/Slide7.PNG" loading="lazy" alt="Slide 7">
+                <div class="drawer-slide-number">7</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(7)">
+                <img src="reveal_assets/images/Slide8.PNG" loading="lazy" alt="Slide 8">
+                <div class="drawer-slide-number">8</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(8)">
+                <img src="reveal_assets/images/Slide9.PNG" loading="lazy" alt="Slide 9">
+                <div class="drawer-slide-number">9</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(9)">
+                <img src="reveal_assets/images/Slide10.PNG" loading="lazy" alt="Slide 10">
+                <div class="drawer-slide-number">10</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(10)">
+                <img src="reveal_assets/images/Slide11.PNG" loading="lazy" alt="Slide 11">
+                <div class="drawer-slide-number">11</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(11)">
+                <img src="reveal_assets/images/Slide12.PNG" loading="lazy" alt="Slide 12">
+                <div class="drawer-slide-number">12</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(12)">
+                <img src="reveal_assets/images/Slide13.PNG" loading="lazy" alt="Slide 13">
+                <div class="drawer-slide-number">13</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(13)">
+                <img src="reveal_assets/images/Slide14.PNG" loading="lazy" alt="Slide 14">
+                <div class="drawer-slide-number">14</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(14)">
+                <img src="reveal_assets/images/Slide15.PNG" loading="lazy" alt="Slide 15">
+                <div class="drawer-slide-number">15</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(15)">
+                <img src="reveal_assets/images/Slide16.PNG" loading="lazy" alt="Slide 16">
+                <div class="drawer-slide-number">16</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(16)">
+                <img src="reveal_assets/images/Slide17.PNG" loading="lazy" alt="Slide 17">
+                <div class="drawer-slide-number">17</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(17)">
+                <img src="reveal_assets/images/Slide18.PNG" loading="lazy" alt="Slide 18">
+                <div class="drawer-slide-number">18</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(18)">
+                <img src="reveal_assets/images/Slide19.PNG" loading="lazy" alt="Slide 19">
+                <div class="drawer-slide-number">19</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(19)">
+                <img src="reveal_assets/images/Slide20.PNG" loading="lazy" alt="Slide 20">
+                <div class="drawer-slide-number">20</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(20)">
+                <img src="reveal_assets/images/Slide21.PNG" loading="lazy" alt="Slide 21">
+                <div class="drawer-slide-number">21</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(21)">
+                <img src="reveal_assets/images/Slide22.PNG" loading="lazy" alt="Slide 22">
+                <div class="drawer-slide-number">22</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(22)">
+                <img src="reveal_assets/images/Slide23.PNG" loading="lazy" alt="Slide 23">
+                <div class="drawer-slide-number">23</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(23)">
+                <img src="reveal_assets/images/Slide24.PNG" loading="lazy" alt="Slide 24">
+                <div class="drawer-slide-number">24</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(24)">
+                <img src="reveal_assets/images/Slide25.PNG" loading="lazy" alt="Slide 25">
+                <div class="drawer-slide-number">25</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(25)">
+                <img src="reveal_assets/images/Slide26.PNG" loading="lazy" alt="Slide 26">
+                <div class="drawer-slide-number">26</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(26)">
+                <img src="reveal_assets/images/Slide27.PNG" loading="lazy" alt="Slide 27">
+                <div class="drawer-slide-number">27</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(27)">
+                <img src="reveal_assets/images/Slide28.PNG" loading="lazy" alt="Slide 28">
+                <div class="drawer-slide-number">28</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(28)">
+                <img src="reveal_assets/images/Slide29.PNG" loading="lazy" alt="Slide 29">
+                <div class="drawer-slide-number">29</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(29)">
+                <img src="reveal_assets/images/Slide30.PNG" loading="lazy" alt="Slide 30">
+                <div class="drawer-slide-number">30</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(30)">
+                <img src="reveal_assets/images/Slide31.PNG" loading="lazy" alt="Slide 31">
+                <div class="drawer-slide-number">31</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(31)">
+                <img src="reveal_assets/images/Slide32.PNG" loading="lazy" alt="Slide 32">
+                <div class="drawer-slide-number">32</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(32)">
+                <img src="reveal_assets/images/Slide33.PNG" loading="lazy" alt="Slide 33">
+                <div class="drawer-slide-number">33</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(33)">
+                <img src="reveal_assets/images/Slide34.PNG" loading="lazy" alt="Slide 34">
+                <div class="drawer-slide-number">34</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(34)">
+                <img src="reveal_assets/images/Slide35.PNG" loading="lazy" alt="Slide 35">
+                <div class="drawer-slide-number">35</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(35)">
+                <img src="reveal_assets/images/Slide36.PNG" loading="lazy" alt="Slide 36">
+                <div class="drawer-slide-number">36</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(36)">
+                <img src="reveal_assets/images/Slide37.PNG" loading="lazy" alt="Slide 37">
+                <div class="drawer-slide-number">37</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(37)">
+                <img src="reveal_assets/images/Slide38.PNG" loading="lazy" alt="Slide 38">
+                <div class="drawer-slide-number">38</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(38)">
+                <img src="reveal_assets/images/Slide39.PNG" loading="lazy" alt="Slide 39">
+                <div class="drawer-slide-number">39</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(39)">
+                <img src="reveal_assets/images/Slide40.PNG" loading="lazy" alt="Slide 40">
+                <div class="drawer-slide-number">40</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(40)">
+                <img src="reveal_assets/images/Slide41.PNG" loading="lazy" alt="Slide 41">
+                <div class="drawer-slide-number">41</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(41)">
+                <img src="reveal_assets/images/Slide42.PNG" loading="lazy" alt="Slide 42">
+                <div class="drawer-slide-number">42</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(42)">
+                <img src="reveal_assets/images/Slide43.PNG" loading="lazy" alt="Slide 43">
+                <div class="drawer-slide-number">43</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(43)">
+                <img src="reveal_assets/images/Slide44.PNG" loading="lazy" alt="Slide 44">
+                <div class="drawer-slide-number">44</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(44)">
+                <img src="reveal_assets/images/Slide45.PNG" loading="lazy" alt="Slide 45">
+                <div class="drawer-slide-number">45</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(45)">
+                <img src="reveal_assets/images/Slide46.PNG" loading="lazy" alt="Slide 46">
+                <div class="drawer-slide-number">46</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(46)">
+                <img src="reveal_assets/images/Slide47.PNG" loading="lazy" alt="Slide 47">
+                <div class="drawer-slide-number">47</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(47)">
+                <img src="reveal_assets/images/Slide48.PNG" loading="lazy" alt="Slide 48">
+                <div class="drawer-slide-number">48</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(48)">
+                <img src="reveal_assets/images/Slide49.PNG" loading="lazy" alt="Slide 49">
+                <div class="drawer-slide-number">49</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(49)">
+                <img src="reveal_assets/images/Slide50.PNG" loading="lazy" alt="Slide 50">
+                <div class="drawer-slide-number">50</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(50)">
+                <img src="reveal_assets/images/Slide51.PNG" loading="lazy" alt="Slide 51">
+                <div class="drawer-slide-number">51</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(51)">
+                <img src="reveal_assets/images/Slide52.PNG" loading="lazy" alt="Slide 52">
+                <div class="drawer-slide-number">52</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(52)">
+                <img src="reveal_assets/images/Slide53.PNG" loading="lazy" alt="Slide 53">
+                <div class="drawer-slide-number">53</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(53)">
+                <img src="reveal_assets/images/Slide54.PNG" loading="lazy" alt="Slide 54">
+                <div class="drawer-slide-number">54</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(54)">
+                <img src="reveal_assets/images/Slide55.PNG" loading="lazy" alt="Slide 55">
+                <div class="drawer-slide-number">55</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(55)">
+                <img src="reveal_assets/images/Slide56.PNG" loading="lazy" alt="Slide 56">
+                <div class="drawer-slide-number">56</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(56)">
+                <img src="reveal_assets/images/Slide57.PNG" loading="lazy" alt="Slide 57">
+                <div class="drawer-slide-number">57</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(57)">
+                <img src="reveal_assets/images/Slide58.PNG" loading="lazy" alt="Slide 58">
+                <div class="drawer-slide-number">58</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(58)">
+                <img src="reveal_assets/images/Slide59.PNG" loading="lazy" alt="Slide 59">
+                <div class="drawer-slide-number">59</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(59)">
+                <img src="reveal_assets/images/Slide60.PNG" loading="lazy" alt="Slide 60">
+                <div class="drawer-slide-number">60</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(60)">
+                <img src="reveal_assets/images/Slide61.PNG" loading="lazy" alt="Slide 61">
+                <div class="drawer-slide-number">61</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(61)">
+                <img src="reveal_assets/images/Slide62.PNG" loading="lazy" alt="Slide 62">
+                <div class="drawer-slide-number">62</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(62)">
+                <img src="reveal_assets/images/Slide63.PNG" loading="lazy" alt="Slide 63">
+                <div class="drawer-slide-number">63</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(63)">
+                <img src="reveal_assets/images/Slide64.PNG" loading="lazy" alt="Slide 64">
+                <div class="drawer-slide-number">64</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(64)">
+                <img src="reveal_assets/images/Slide65.PNG" loading="lazy" alt="Slide 65">
+                <div class="drawer-slide-number">65</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(65)">
+                <img src="reveal_assets/images/Slide66.PNG" loading="lazy" alt="Slide 66">
+                <div class="drawer-slide-number">66</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(66)">
+                <img src="reveal_assets/images/Slide67.PNG" loading="lazy" alt="Slide 67">
+                <div class="drawer-slide-number">67</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(67)">
+                <img src="reveal_assets/images/Slide68.PNG" loading="lazy" alt="Slide 68">
+                <div class="drawer-slide-number">68</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(68)">
+                <img src="reveal_assets/images/Slide69.PNG" loading="lazy" alt="Slide 69">
+                <div class="drawer-slide-number">69</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(69)">
+                <img src="reveal_assets/images/Slide70.PNG" loading="lazy" alt="Slide 70">
+                <div class="drawer-slide-number">70</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(70)">
+                <img src="reveal_assets/images/Slide71.PNG" loading="lazy" alt="Slide 71">
+                <div class="drawer-slide-number">71</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(71)">
+                <img src="reveal_assets/images/Slide72.PNG" loading="lazy" alt="Slide 72">
+                <div class="drawer-slide-number">72</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(72)">
+                <img src="reveal_assets/images/Slide73.PNG" loading="lazy" alt="Slide 73">
+                <div class="drawer-slide-number">73</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(73)">
+                <img src="reveal_assets/images/Slide74.PNG" loading="lazy" alt="Slide 74">
+                <div class="drawer-slide-number">74</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(74)">
+                <img src="reveal_assets/images/Slide75.PNG" loading="lazy" alt="Slide 75">
+                <div class="drawer-slide-number">75</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(75)">
+                <img src="reveal_assets/images/Slide76.PNG" loading="lazy" alt="Slide 76">
+                <div class="drawer-slide-number">76</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(76)">
+                <img src="reveal_assets/images/Slide77.PNG" loading="lazy" alt="Slide 77">
+                <div class="drawer-slide-number">77</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(77)">
+                <img src="reveal_assets/images/Slide78.PNG" loading="lazy" alt="Slide 78">
+                <div class="drawer-slide-number">78</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(78)">
+                <img src="reveal_assets/images/Slide79.PNG" loading="lazy" alt="Slide 79">
+                <div class="drawer-slide-number">79</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(79)">
+                <img src="reveal_assets/images/Slide80.PNG" loading="lazy" alt="Slide 80">
+                <div class="drawer-slide-number">80</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(80)">
+                <img src="reveal_assets/images/Slide81.PNG" loading="lazy" alt="Slide 81">
+                <div class="drawer-slide-number">81</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(81)">
+                <img src="reveal_assets/images/Slide82.PNG" loading="lazy" alt="Slide 82">
+                <div class="drawer-slide-number">82</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(82)">
+                <img src="reveal_assets/images/Slide83.PNG" loading="lazy" alt="Slide 83">
+                <div class="drawer-slide-number">83</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(83)">
+                <img src="reveal_assets/images/Slide84.PNG" loading="lazy" alt="Slide 84">
+                <div class="drawer-slide-number">84</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(84)">
+                <img src="reveal_assets/images/Slide85.PNG" loading="lazy" alt="Slide 85">
+                <div class="drawer-slide-number">85</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(85)">
+                <img src="reveal_assets/images/Slide86.PNG" loading="lazy" alt="Slide 86">
+                <div class="drawer-slide-number">86</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(86)">
+                <img src="reveal_assets/images/Slide87.PNG" loading="lazy" alt="Slide 87">
+                <div class="drawer-slide-number">87</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(87)">
+                <img src="reveal_assets/images/Slide88.PNG" loading="lazy" alt="Slide 88">
+                <div class="drawer-slide-number">88</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(88)">
+                <img src="reveal_assets/images/Slide89.PNG" loading="lazy" alt="Slide 89">
+                <div class="drawer-slide-number">89</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(89)">
+                <img src="reveal_assets/images/Slide90.PNG" loading="lazy" alt="Slide 90">
+                <div class="drawer-slide-number">90</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(90)">
+                <img src="reveal_assets/images/Slide91.PNG" loading="lazy" alt="Slide 91">
+                <div class="drawer-slide-number">91</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(91)">
+                <img src="reveal_assets/images/Slide92.PNG" loading="lazy" alt="Slide 92">
+                <div class="drawer-slide-number">92</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(92)">
+                <img src="reveal_assets/images/Slide93.PNG" loading="lazy" alt="Slide 93">
+                <div class="drawer-slide-number">93</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(93)">
+                <img src="reveal_assets/images/Slide94.PNG" loading="lazy" alt="Slide 94">
+                <div class="drawer-slide-number">94</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(94)">
+                <img src="reveal_assets/images/Slide95.PNG" loading="lazy" alt="Slide 95">
+                <div class="drawer-slide-number">95</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(95)">
+                <img src="reveal_assets/images/Slide96.PNG" loading="lazy" alt="Slide 96">
+                <div class="drawer-slide-number">96</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(96)">
+                <img src="reveal_assets/images/Slide97.PNG" loading="lazy" alt="Slide 97">
+                <div class="drawer-slide-number">97</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(97)">
+                <img src="reveal_assets/images/Slide98.PNG" loading="lazy" alt="Slide 98">
+                <div class="drawer-slide-number">98</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(98)">
+                <img src="reveal_assets/images/Slide99.PNG" loading="lazy" alt="Slide 99">
+                <div class="drawer-slide-number">99</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(99)">
+                <img src="reveal_assets/images/Slide100.PNG" loading="lazy" alt="Slide 100">
+                <div class="drawer-slide-number">100</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(100)">
+                <img src="reveal_assets/images/Slide101.PNG" loading="lazy" alt="Slide 101">
+                <div class="drawer-slide-number">101</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(101)">
+                <img src="reveal_assets/images/Slide102.PNG" loading="lazy" alt="Slide 102">
+                <div class="drawer-slide-number">102</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(102)">
+                <img src="reveal_assets/images/Slide103.PNG" loading="lazy" alt="Slide 103">
+                <div class="drawer-slide-number">103</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(103)">
+                <img src="reveal_assets/images/Slide104.PNG" loading="lazy" alt="Slide 104">
+                <div class="drawer-slide-number">104</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(104)">
+                <img src="reveal_assets/images/Slide105.PNG" loading="lazy" alt="Slide 105">
+                <div class="drawer-slide-number">105</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(105)">
+                <img src="reveal_assets/images/Slide106.PNG" loading="lazy" alt="Slide 106">
+                <div class="drawer-slide-number">106</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(106)">
+                <img src="reveal_assets/images/Slide107.PNG" loading="lazy" alt="Slide 107">
+                <div class="drawer-slide-number">107</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(107)">
+                <img src="reveal_assets/images/Slide108.PNG" loading="lazy" alt="Slide 108">
+                <div class="drawer-slide-number">108</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(108)">
+                <img src="reveal_assets/images/Slide109.PNG" loading="lazy" alt="Slide 109">
+                <div class="drawer-slide-number">109</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(109)">
+                <img src="reveal_assets/images/Slide110.PNG" loading="lazy" alt="Slide 110">
+                <div class="drawer-slide-number">110</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(110)">
+                <img src="reveal_assets/images/Slide111.PNG" loading="lazy" alt="Slide 111">
+                <div class="drawer-slide-number">111</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(111)">
+                <img src="reveal_assets/images/Slide112.PNG" loading="lazy" alt="Slide 112">
+                <div class="drawer-slide-number">112</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(112)">
+                <img src="reveal_assets/images/Slide113.PNG" loading="lazy" alt="Slide 113">
+                <div class="drawer-slide-number">113</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(113)">
+                <img src="reveal_assets/images/Slide114.PNG" loading="lazy" alt="Slide 114">
+                <div class="drawer-slide-number">114</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(114)">
+                <img src="reveal_assets/images/Slide115.PNG" loading="lazy" alt="Slide 115">
+                <div class="drawer-slide-number">115</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(115)">
+                <img src="reveal_assets/images/Slide116.PNG" loading="lazy" alt="Slide 116">
+                <div class="drawer-slide-number">116</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(116)">
+                <img src="reveal_assets/images/Slide117.PNG" loading="lazy" alt="Slide 117">
+                <div class="drawer-slide-number">117</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(117)">
+                <img src="reveal_assets/images/Slide118.PNG" loading="lazy" alt="Slide 118">
+                <div class="drawer-slide-number">118</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(118)">
+                <img src="reveal_assets/images/Slide119.PNG" loading="lazy" alt="Slide 119">
+                <div class="drawer-slide-number">119</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(119)">
+                <img src="reveal_assets/images/Slide120.PNG" loading="lazy" alt="Slide 120">
+                <div class="drawer-slide-number">120</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(120)">
+                <img src="reveal_assets/images/Slide121.PNG" loading="lazy" alt="Slide 121">
+                <div class="drawer-slide-number">121</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(121)">
+                <img src="reveal_assets/images/Slide122.PNG" loading="lazy" alt="Slide 122">
+                <div class="drawer-slide-number">122</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(122)">
+                <img src="reveal_assets/images/Slide123.PNG" loading="lazy" alt="Slide 123">
+                <div class="drawer-slide-number">123</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(123)">
+                <img src="reveal_assets/images/Slide124.PNG" loading="lazy" alt="Slide 124">
+                <div class="drawer-slide-number">124</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(124)">
+                <img src="reveal_assets/images/Slide125.PNG" loading="lazy" alt="Slide 125">
+                <div class="drawer-slide-number">125</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(125)">
+                <img src="reveal_assets/images/Slide126.PNG" loading="lazy" alt="Slide 126">
+                <div class="drawer-slide-number">126</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(126)">
+                <img src="reveal_assets/images/Slide127.PNG" loading="lazy" alt="Slide 127">
+                <div class="drawer-slide-number">127</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(127)">
+                <img src="reveal_assets/images/Slide128.PNG" loading="lazy" alt="Slide 128">
+                <div class="drawer-slide-number">128</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(128)">
+                <img src="reveal_assets/images/Slide129.PNG" loading="lazy" alt="Slide 129">
+                <div class="drawer-slide-number">129</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(129)">
+                <img src="reveal_assets/images/Slide130.PNG" loading="lazy" alt="Slide 130">
+                <div class="drawer-slide-number">130</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(130)">
+                <img src="reveal_assets/images/Slide131.PNG" loading="lazy" alt="Slide 131">
+                <div class="drawer-slide-number">131</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(131)">
+                <img src="reveal_assets/images/Slide132.PNG" loading="lazy" alt="Slide 132">
+                <div class="drawer-slide-number">132</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(132)">
+                <img src="reveal_assets/images/Slide133.PNG" loading="lazy" alt="Slide 133">
+                <div class="drawer-slide-number">133</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(133)">
+                <img src="reveal_assets/images/Slide134.PNG" loading="lazy" alt="Slide 134">
+                <div class="drawer-slide-number">134</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(134)">
+                <img src="reveal_assets/images/Slide135.PNG" loading="lazy" alt="Slide 135">
+                <div class="drawer-slide-number">135</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(135)">
+                <img src="reveal_assets/images/Slide136.PNG" loading="lazy" alt="Slide 136">
+                <div class="drawer-slide-number">136</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(136)">
+                <img src="reveal_assets/images/Slide137.PNG" loading="lazy" alt="Slide 137">
+                <div class="drawer-slide-number">137</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(137)">
+                <img src="reveal_assets/images/Slide138.PNG" loading="lazy" alt="Slide 138">
+                <div class="drawer-slide-number">138</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(138)">
+                <img src="reveal_assets/images/Slide139.PNG" loading="lazy" alt="Slide 139">
+                <div class="drawer-slide-number">139</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(139)">
+                <img src="reveal_assets/images/Slide140.PNG" loading="lazy" alt="Slide 140">
+                <div class="drawer-slide-number">140</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(140)">
+                <img src="reveal_assets/images/Slide141.PNG" loading="lazy" alt="Slide 141">
+                <div class="drawer-slide-number">141</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(141)">
+                <img src="reveal_assets/images/Slide142.PNG" loading="lazy" alt="Slide 142">
+                <div class="drawer-slide-number">142</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(142)">
+                <img src="reveal_assets/images/Slide143.PNG" loading="lazy" alt="Slide 143">
+                <div class="drawer-slide-number">143</div>
+            </div>
+
+            <div class="drawer-item" onclick="jumpToSlide(143)">
+                <img src="reveal_assets/images/Slide144.PNG" loading="lazy" alt="Slide 144">
+                <div class="drawer-slide-number">144</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Slide Jump Box -->
+    <div class="jump-box-container">
+        <span class="jump-text">跳至頁面:</span>
+        <input type="text" class="jump-input" id="jumpInput" placeholder="1" onkeydown="handleJumpKey(event)">
+        <span class="jump-text">/ 144</span>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/plugin/zoom/zoom.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/plugin/search/search.min.js"></script>
+    
+    <script>
+        // Initialize reveal.js with slide number, zoom/search plugins, and zoom transition
+        Reveal.initialize({
+            hash: true,
+            respondToHashChanges: true,
+            history: true,
+            transition: 'zoom', // Smooth zoom transition between pages
+            plugins: [ RevealZoom, RevealSearch ],
+            controls: true,
+            progress: true,
+            center: true,
+            slideNumber: 'c/t',
+            
+            // Custom keybindings
+            keyboard: {
+                // Toggle slide sorter drawer with Tab key
+                9: function() { toggleDrawer(); },
+                // Toggle slide overview with Esc key (standard in reveal.js)
+                27: function() { Reveal.toggleOverview(); }
+            }
+        });
+
+        // Keep track of current slide in drawer
+        Reveal.on('slidechanged', event => {
+            updateActiveThumbnail(event.indexh);
+            document.getElementById('jumpInput').placeholder = event.indexh + 1;
+        });
+
+        function toggleDrawer() {
+            const drawer = document.getElementById('slideDrawer');
+            drawer.classList.toggle('open');
+            if (drawer.classList.contains('open')) {
+                // Scroll the active thumbnail into view
+                const index = Reveal.getIndices().h;
+                updateActiveThumbnail(index);
+                setTimeout(() => {
+                    const activeItem = document.querySelector('.drawer-item.active');
+                    if (activeItem) {
+                        activeItem.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                    }
+                }, 200);
+            }
+        }
+
+        function jumpToSlide(index) {
+            Reveal.slide(index);
+            toggleDrawer();
+        }
+
+        function updateActiveThumbnail(index) {
+            const items = document.querySelectorAll('.drawer-item');
+            items.forEach((item, idx) => {
+                if (idx === index) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        }
+
+        function handleJumpKey(event) {
+            if (event.key === 'Enter') {
+                const input = document.getElementById('jumpInput');
+                const val = parseInt(input.value);
+                if (val >= 1 && val <= 144) {
+                    Reveal.slide(val - 1);
+                    input.value = '';
+                    input.blur();
+                }
+            }
+        }
+
+        // Initialize active thumbnail at start
+        Reveal.on('ready', event => {
+            updateActiveThumbnail(event.indexh);
+            document.getElementById('jumpInput').placeholder = event.indexh + 1;
+        });
+    </script>
+</body>
+</html>

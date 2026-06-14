@@ -1,0 +1,929 @@
+<!doctype html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Web3D 技術地圖｜Three.js 之外＋IFC 直讀方案（含官方網站）</title>
+    <meta name="description"
+        content="整理 Web3D 常見框架、BIM/IFC viewer、XR、GIS、DataVis、底層 WebGL 與引擎匯出；附官方網站/文件連結與 IFC 直讀能力對照。" />
+
+    <style>
+        :root {
+            --bg: #0b1020;
+            --panel: #0f172a;
+            --card: #0b1224;
+            --soft: #121b33;
+            --line: rgba(148, 163, 184, .20);
+            --text: #e5e7eb;
+            --muted: #94a3b8;
+            --good: #22c55e;
+            --warn: #f59e0b;
+            --bad: #ef4444;
+            --accent: #60a5fa;
+            --accent2: #a78bfa;
+            --shadow: 0 18px 42px rgba(0, 0, 0, .35);
+            --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", Arial, sans-serif;
+            --r: 18px;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            background:
+                radial-gradient(900px 420px at 20% -10%, rgba(96, 165, 250, .25), transparent 60%),
+                radial-gradient(900px 420px at 90% 0%, rgba(167, 139, 250, .22), transparent 60%),
+                linear-gradient(180deg, #070b16 0%, #0b1020 30%, #070b16 100%);
+            color: var(--text);
+            font-family: var(--sans);
+            line-height: 1.7;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none
+        }
+
+        .wrap {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px 16px 56px
+        }
+
+        header {
+            border: 1px solid var(--line);
+            background: linear-gradient(180deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, .01));
+            border-radius: calc(var(--r) + 6px);
+            padding: 18px 18px 14px;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 12px;
+            z-index: 10;
+            backdrop-filter: blur(8px);
+        }
+
+        .top {
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 18px;
+            letter-spacing: .2px;
+        }
+
+        .sub {
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 13px;
+            max-width: 900px;
+        }
+
+        .ctrl {
+            margin-left: auto;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .search {
+            min-width: 260px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, .03);
+            border-radius: 999px;
+            padding: 10px 12px;
+            color: var(--text);
+            outline: none;
+        }
+
+        .btn {
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, .03);
+            color: var(--text);
+            padding: 10px 12px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: .15s;
+            user-select: none;
+            font-size: 13px;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            border-color: rgba(96, 165, 250, .35)
+        }
+
+        .btn[aria-pressed="true"] {
+            background: rgba(96, 165, 250, .12);
+            border-color: rgba(96, 165, 250, .45);
+        }
+
+        .chips {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .chip {
+            font-size: 12px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, .02);
+            padding: 6px 10px;
+            border-radius: 999px;
+            color: var(--muted);
+        }
+
+        .grid {
+            margin-top: 18px;
+            display: grid;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        @media (min-width:860px) {
+            .grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (min-width:1120px) {
+            .grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        .card {
+            border: 1px solid var(--line);
+            background: linear-gradient(180deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, .01));
+            border-radius: var(--r);
+            padding: 14px 14px 12px;
+            box-shadow: 0 14px 34px rgba(0, 0, 0, .25);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:before {
+            content: "";
+            position: absolute;
+            inset: -80px -80px auto auto;
+            width: 240px;
+            height: 240px;
+            background: radial-gradient(circle at 30% 30%, rgba(96, 165, 250, .14), transparent 60%);
+            pointer-events: none;
+            transform: rotate(10deg);
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .logo {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, .25);
+            background: rgba(255, 255, 255, .03);
+            display: grid;
+            place-items: center;
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--muted);
+            flex: 0 0 auto;
+        }
+
+        .name {
+            font-weight: 850;
+            margin: 0;
+            font-size: 15px
+        }
+
+        .meta {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 12.5px
+        }
+
+        .tags {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px
+        }
+
+        .tag {
+            font-size: 11.5px;
+            border: 1px solid rgba(148, 163, 184, .22);
+            background: rgba(255, 255, 255, .02);
+            padding: 5px 9px;
+            border-radius: 999px;
+            color: var(--muted);
+        }
+
+        .tag.good {
+            border-color: rgba(34, 197, 94, .35);
+            color: #bbf7d0;
+            background: rgba(34, 197, 94, .08)
+        }
+
+        .tag.warn {
+            border-color: rgba(245, 158, 11, .35);
+            color: #fde68a;
+            background: rgba(245, 158, 11, .08)
+        }
+
+        .tag.bad {
+            border-color: rgba(239, 68, 68, .35);
+            color: #fecaca;
+            background: rgba(239, 68, 68, .08)
+        }
+
+        .bul {
+            margin: 10px 0 0 18px;
+            color: rgba(226, 232, 240, .92);
+            font-size: 13.5px;
+        }
+
+        .links {
+            margin-top: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .link {
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            font-size: 12.5px;
+            border: 1px solid rgba(148, 163, 184, .22);
+            background: rgba(255, 255, 255, .02);
+            padding: 8px 10px;
+            border-radius: 999px;
+            transition: .15s;
+        }
+
+        .link:hover {
+            transform: translateY(-1px);
+            border-color: rgba(167, 139, 250, .45)
+        }
+
+        .k {
+            font-family: var(--mono);
+            color: rgba(147, 197, 253, .95);
+            font-size: 12px;
+        }
+
+        .section {
+            margin-top: 18px;
+            border: 1px solid var(--line);
+            border-radius: var(--r);
+            background: linear-gradient(180deg, rgba(255, 255, 255, .02), rgba(255, 255, 255, .01));
+            padding: 14px;
+        }
+
+        .section h2 {
+            margin: 0 0 8px;
+            font-size: 15.5px;
+            letter-spacing: .2px;
+        }
+
+        .note {
+            color: var(--muted);
+            font-size: 13px;
+            margin: 0
+        }
+
+        .matrix {
+            width: 100%;
+            margin-top: 10px;
+            border-collapse: separate;
+            border-spacing: 0;
+            overflow: hidden;
+            border: 1px solid rgba(148, 163, 184, .20);
+            border-radius: 14px;
+            background: rgba(0, 0, 0, .18);
+        }
+
+        .matrix th,
+        .matrix td {
+            padding: 9px 10px;
+            border-bottom: 1px solid rgba(148, 163, 184, .16);
+            vertical-align: top;
+            font-size: 13px;
+            text-align: left;
+        }
+
+        .matrix th {
+            color: #e2e8f0;
+            background: rgba(255, 255, 255, .04);
+            font-weight: 850;
+        }
+
+        .matrix tr:last-child td {
+            border-bottom: none
+        }
+
+        .ok {
+            color: #86efac
+        }
+
+        .mid {
+            color: #fde68a
+        }
+
+        .no {
+            color: #fecaca
+        }
+
+        footer {
+            margin-top: 18px;
+            color: var(--muted);
+            font-size: 12.5px;
+            text-align: center;
+        }
+
+        .hide {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <header>
+            <div class="top">
+                <div>
+                    <h1>Web3D 技術地圖（Three.js 之外＋IFC 直讀方案）</h1>
+                    <div class="sub">
+                        以「用途」分類：通用 3D 引擎、BIM/IFC、輕量展示、XR、GIS、資料視覺化、底層 WebGL、遊戲引擎匯出。
+                        每張卡片都附上官方網站／官方文件或官方 GitHub。
+                    </div>
+                </div>
+
+                <div class="ctrl">
+                    <input id="q" class="search" placeholder="搜尋：例如 IFC、BIM、WebGPU、AR、GIS…" />
+                    <button class="btn" id="reset">清除篩選</button>
+                </div>
+            </div>
+
+            <div class="chips">
+                <span class="chip">提示：點「分類按鈕」或用搜尋框；可同時套用多個分類</span>
+                <span class="chip">IFC 直讀：通常透過 WebAssembly 解析（如 web-ifc）在瀏覽器端轉幾何＋語意</span>
+                <span class="chip">glTF/GLB：Web3D 最常見的傳輸格式（Khronos）</span>
+            </div>
+
+            <div class="chips" style="margin-top:10px;">
+                <button class="btn" data-filter="engine" aria-pressed="false">通用引擎</button>
+                <button class="btn" data-filter="bim" aria-pressed="false">BIM / IFC</button>
+                <button class="btn" data-filter="viewer" aria-pressed="false">輕量 Viewer</button>
+                <button class="btn" data-filter="xr" aria-pressed="false">XR / VR / AR</button>
+                <button class="btn" data-filter="gis" aria-pressed="false">GIS / 城市</button>
+                <button class="btn" data-filter="datavis" aria-pressed="false">資料視覺化</button>
+                <button class="btn" data-filter="lowlevel" aria-pressed="false">底層 WebGL</button>
+                <button class="btn" data-filter="export" aria-pressed="false">引擎匯出到 Web</button>
+                <button class="btn" data-filter="standard" aria-pressed="false">標準 / 規範</button>
+            </div>
+        </header>
+
+        <section class="section">
+            <h2>能力對照（快速判斷）</h2>
+            <p class="note">
+                這張表只抓我們剛討論的重點：<b>是否能直接讀 IFC</b>、以及常見的「定位」。想要「工程協作」通常會選 BIM/IFC 類；想要「最快出效果」會選輕量 Viewer；想要「渲染特效」會偏通用引擎或
+                WebGPU。
+            </p>
+
+            <table class="matrix" aria-label="能力對照表">
+                <thead>
+                    <tr>
+                        <th style="width:22%;">類別</th>
+                        <th style="width:26%;">代表方案</th>
+                        <th style="width:16%;">IFC 直讀</th>
+                        <th>典型定位</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><b>BIM / IFC</b></td>
+                        <td>IFC.js / web-ifc-viewer / web-ifc-three / xeokit</td>
+                        <td class="ok">可（視方案與模型大小）</td>
+                        <td>構件語意、查詢、剖切/量測/分類等工程互動</td>
+                    </tr>
+                    <tr>
+                        <td><b>通用引擎</b></td>
+                        <td>Three.js / Babylon.js / PlayCanvas</td>
+                        <td class="mid">多為「需加載入器」</td>
+                        <td>自訂互動系統、渲染特效、完整 UI/流程</td>
+                    </tr>
+                    <tr>
+                        <td><b>輕量 Viewer</b></td>
+                        <td>&lt;model-viewer&gt;</td>
+                        <td class="no">否（只走 glTF/GLB）</td>
+                        <td>最快展示、嵌入、分享、AR（但不做 IFC 語意）</td>
+                    </tr>
+                    <tr>
+                        <td><b>GIS / 城市</b></td>
+                        <td>CesiumJS</td>
+                        <td class="mid">視資料管線</td>
+                        <td>3D 地球、城市尺度、地理座標/大範圍資料</td>
+                    </tr>
+                    <tr>
+                        <td><b>資料視覺化</b></td>
+                        <td>deck.gl</td>
+                        <td class="mid">偏資料層</td>
+                        <td>大量資料圖層、分析、時間序列（常搭配地圖）</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="grid" id="cards">
+
+            <!-- ================== Engines ================== -->
+            <article class="card" data-tags="engine">
+                <div class="row">
+                    <div class="logo">3JS</div>
+                    <div>
+                        <p class="name">Three.js</p>
+                        <p class="meta">通用 Web3D 框架：場景/相機/材質/載入器/互動，適合深度客製</p>
+                    </div>
+                </div>
+                <div class="tags">
+                    <span class="tag">通用引擎</span>
+                    <span class="tag good">客製化：高</span>
+                    <span class="tag warn">IFC：需 Loader</span>
+                    <span class="tag">glTF/GLB：常用</span>
+                </div>
+                <ul class="bul">
+                    <li>適合做「你想怎麼互動就怎麼互動」的系統：選取、聚焦、狀態上色、面板、事件流程</li>
+                    <li>IFC 直讀通常要搭配 web-ifc 系列 Loader（見下方 BIM 卡）</li>
+                </ul>
+                <div class="links">
+                    <a class="link" href="https://threejs.org/" target="_blank" rel="noopener">官方網站 <span
+                            class="k">threejs.org</span></a>
+                    <a class="link" href="https://github.com/mrdoob/three.js" target="_blank" rel="noopener">官方
+                        GitHub</a>
+                </div>
+            </article>
+
+            <article class="card" data-tags="engine standard">
+                <div class="row">
+                    <div class="logo">BJS</div>
+                    <div>
+                        <p class="name">Babylon.js</p>
+                        <p class="meta">完整引擎取向：渲染/材質/工具鏈齊全，並提供 WebGPU 支援文件</p>
+                    </div>
+                </div>
+                <div class="tags">
+                    <span class="tag">通用引擎</span>
+                    <span class="tag good">渲染表現：強</span>
+                    <span class="tag">WebGPU</span>
+                </div>
+                <ul class="bul">
+                    <li>偏「畫面＋引擎」：做展示級渲染、特效、完整互動流程很順</li>
+                    <li>想用 WebGPU 路線可參考官方支援說明</li>
+                </ul>
+                <div class="links">
+                    <a class="link" href="https://www.babylonjs.com/" target="_blank" rel="noopener">官方網站</a>
+                    <a class="link" href="https://doc.babylonjs.com/setup/support/webGPU" target="_blank"
+                        rel="noopener">官方文件：WebGPU</a>
+                </div>
+            </article>
+
+            <article class="card" data-tags="engine viewer">
+                <div class="row">
+                    <div class="logo">PC</div>
+                    <div>
+                        <p class="name">PlayCanvas Engine</p>
+                        <p class="meta">開源 WebGL 引擎＋協作 Editor 生態，常用於互動展示/配置器/廣告</p>
+                    </div>
+                </div>
+                <div class="tags">
+                    <span class="tag">通用引擎</span>
+                    <span class="tag good">交付速度：快</span>
+                    <span class="tag">glTF：友善</span>
+                </div>
+                <ul class="bul">
+                    <li>想要「引擎＋線上工具」協作時很方便</li>
+                    <li>也適合做產品配置器、互動展示、可分享的 3D 應用</li>
+                </ul>
+                <div class="links">
+                    <a class="link" href="https://playcanvas.com/" target="_blank" rel="noopener">官方網站</a>
+                    <a class="link" href="https://developer.playcanvas.com/user-manual/engine/" target="_blank"
+                        rel="noopener">官方文件：Engine</a>
+                    <a class="link" href="https://github.com/playcanvas/engine" target="_blank" rel="noopener">官方
+                        GitHub</a>
+                </div>
+            </article>
+
+            <!-- ================== BIM / IFC ================== -->
+            <article class="card" data-tags="bim engine">
+                <div class="row">
+                    <div class="logo">IFC</div>
+                    <div>
+                        <p class="name">IFC.js / That Open（IfcLoader）</p>
+                        <p class="meta">BIM 工具箱取向：載入 IFC → 轉換/管理 → 建立工程互動（剖切、量測等）</p>
+                    </div>
+                </div>
+                <div class="tags">
+                    <span class="tag">BIM / IFC</span>
+                    <span class="tag good">IFC 直讀：可</span>
+                    <span class="tag good">工程工具：多</span>
+                </div>
+                <ul class="bul">
+                    <li>官方 IfcLoader 文件提供「把 IFC 轉成可用於引擎的資料結構」的工作流</li>
+                    <li>適合要做：構件選取、屬性面板、分類/隔離、剖切/量測等工程互動</li>
+                </ul>
+                <div class="links">
+                    <a class="link" href="https://docs.thatopen.com/Tutorials/Components/Core/IfcLoader" target="_blank"
+                        rel="noopener">官方文件：IfcLoader</a>
+                    <a class="link" href="https://docs.thatopen.com/" target="_blank" rel="noopener">官方文件入口</a>
+                </div>
+            </article>
+
+            <article class="card" data-tags="bim engine">
+                <div class="row">
+                    <div class="logo">WIFC</div>
+                    <div>
+                        <p class="name">web-ifc-three（Three.js 官方 IFCLoader）</p>
+                        <p class="meta">在 Three.js 內「解析 IFC 並生成幾何」的官方 Loader 方向</p>
+                    </div>
+                </div>
+                <div class="tags">
+                    <span class="tag">BIM / IFC</span>
+                    <span class="tag good">IFC 直讀：可</span>
+                    <span class="tag warn">大型模型：看效能</span>
+                </div>
+                <ul class="bul">
+                    <li>把 IFC 解析成 Three.js 幾何，並可查詢 IFC 資料</li>
+                    <li>如果你已經用 Three.js，這是最直覺的 IFC 直讀補強路線</li>
+                </ul>
+                <div class="links">
+                    <a class="link" href="https://github.com/ThatOpen/web-ifc-three" target="_blank" rel="noopener">官方
+                        GitHub：web-ifc-three</a>
+                </div>
+            </article>
+
+            <article class="card" data-tags="bim viewer">
+                <div class="row">
+                    <div class="logo">WIV</div>
+                    <div>
+                        <p class="name">web-ifc-viewer</p>
+                        <p class="meta">在 web-ifc-three 上再加「工程工具」：量測、剖切、平面導覽等</p>
+                    </div>
+                </div>
+                <div class="tags">
+                    <span class="tag">BIM / IFC</span>
+                    <span class="tag good">IFC 直讀：可</span>
+                    <span class="tag good">工具：量測/剖切</span>
+                </div>
+                <ul class="bul">
+                    <li>定位是「快速搭一個 BIM viewer + 工具」：把工程互動做得更快</li>
+                </ul>
+                <div class="links">
+                    <a class="link" href="https://github.com/ThatOpen/web-ifc-viewer" target="_blank" rel="noopener">官方
+                        GitHub：web-ifc-viewer</a>
+                </div>
+            </article>
+
+            <article class="card" data-tags="bim viewer">
+                <div class="row">
+                    <div class="logo">XKT</div>
+                    <div>
+                        <p class="name">xeokit SDK</p>
+                        <p class="meta">BIM/AEC Web viewer：主打高效能與大模型，常搭配預轉檔（XKT）加速</p>
+                    </div>
+                </div>
+                <div class="tags">
+                    <span class="tag">BIM / IFC</span>
+                    <span class="tag good">大模型：強</span>
+                    <span class="tag warn">IFC：常用轉檔</span>
+                </div>
+                <ul class="bul">
+                    <li>官方說明強調：可視覺化複雜 AEC 模型；常見流程是預先轉成 XKT 再在 Web 端快速載入</li>
+                </ul>
+                <div class="links">
+                    <a class="link" href="https://xeokit.io/" target="_blank" rel="noopener">官方網站 <span
+                            class="k">xeokit.io</span></a>
+                    <a class="link" href="https://xeokit.github.io/xeokit-model-conversion-tests/index.html"
+                        target="_blank" rel="noopener">官方：轉檔/載入說明</a>
+                </div>
+            </article>
+
+            <!-- ================== Lightweight Viewer ================== -->
+            <article class="card" data-tags="viewer xr">
+                <div class="row">
+                    <div class="logo">&lt;mv&gt;</div>
+                    <div>
+                        <p class="name">&lt;model-viewer&gt;</p>
+                        <p class="meta">最省事的 3D/AR Web 元件：快速嵌入、快速分享（只支援 glTF/GLB）</p>
+                    </div>
+                </div>
+                <div class="tags">
+                    <span class="tag">輕量 Viewer</span>
+                    <span class="tag good">出效果：最快</span>
+                    <span class="tag bad">IFC：不支援</span>
+                    <span class="tag">glTF/GLB</span>
+                </div>
+                <ul class="bul">
+                    <li>官方 FAQ 明確：只支援 glTF/GLB</li>
+                    <li>適合「展示/嵌入/AR」，不適合做 IFC 語意與工程工具鏈</li>
+                </ul>
+                <div class="links">
+                    <a class="link" href="https://modelviewer.dev/" target="_blank" rel="noopener">官方網站 <span
+                            class="k">modelviewer.dev</span></a>
+                    <a class="link" href="https://modelviewer.dev/docs/faq.html" target="_blank" rel="noopener">官方
+                        FAQ（格式支援）</a>
+                    <a class="link" href="https://github.com/google/model-viewer" target="_blank" rel="noopener">官方
+                        GitHub</a>
+                </div>
+            </article>
+
+            <!-- ================== XR ================== -->
+            <article class="card" data-tags="xr viewer">
+                <div class="row">
+                    <div class="logo">AF</div>
+                    <div>
+                        <p class="name">A-Frame</p>
+                        <p class="meta">用「類 HTML」寫 3D/AR/VR；官方說明它是建在 three.js 之上的框架</p>
+                    </div>
+                </div>
+                <div class="tags">
+                    <span class="tag">XR / VR / AR</span>
+                    <span class="tag">基於 three.js</span>
+                    <span class="tag good">上手：快</span>
+                </div>
+                <ul class="bul">
+                    <li>適合快速做 WebXR 展示或教學 demo（宣告式寫法）</li>
+                    <li>需要更深度客製時，可回到 JS/DOM/three.js 層</li>
+                </ul>
+                <div class="links">
+                    <a class="link" href="https://aframe.io/" target="_blank" rel="noopener">官方網站 <span
+                            class="k">aframe.io</span></a>
+                    <a class="link" href="https://aframe.io/aframe/" target="_blank" rel="noopener">官方說明（架構）</a>
+                    <a class="link" href="https://aframe.io/docs/" target="_blank" rel="noopener">官方文件</a>
+                </div>
+            </article>
+
+            <!-- ================== GIS ================== -->
+            <article class="card" data-tags="gis">
+                <div class="row">
+                    <div class="logo">C3D</div>
+                    <div>
+                        <p class="name">CesiumJS</p>
+                        <p class="meta">3D 地球/地理視覺化：城市尺度、地理座標、巨量資料</p>
+                    </div>
+                </div>
+                <div class="tags">
+                    <span class="tag">GIS / 城市</span>
+                    <span class="tag good">地理精度：高</span>
+                    <span class="tag">3D Globe</span>
+                </div>
+                <ul class="bul">
+                    <li>適合把工程/城市資料放進「真實世界座標」裡檢視與疊圖</li>
+                </ul>
+                <div class="links">
+                    <a class="link" href="https://cesium.com/platform/cesiumjs/" target="_blank"
+                        rel="noopener">官方：CesiumJS</a>
+                    <a class="link" href="https://cesium.com/learn/cesiumjs-learn/" target="_blank"
+                        rel="noopener">官方：學習資源</a>
+                    <a class="link" href="https://sandcastle.cesium.com/index.html" target="_blank"
+                        rel="noopener">官方：Sandcastle</a>
+                </div>
+            </article>
+
+            <!-- ================== DataVis ================== -->
+            <article class="card" data-tags="datavis gis">
+                <div class="row">
+                    <div class="logo">DK</div>
+                    <div>
+                        <p class="name">deck.gl</p>
+                        <p class="meta">GPU 驅動的大數據視覺化：Layer 組合、強調效能與精度（常搭配地圖）</p>
+                    </div>
+                </div>
+                <div class="tags">
+                    <span class="tag">資料視覺化</span>
+                    <span class="tag good">大數據：強</span>
+                    <span class="tag">Layer</span>
+                </div>
+                <ul class="bul">
+                    <li>偏「資料層」：交通、人流、熱區、時間序列，做成可交互的分析視覺化</li>
+                </ul>
+                <div class="links">
+                    <a class="link" href="https://deck.gl/" target="_blank" rel="noopener">官方網站 <span
+                            class="k">deck.gl</span></a>
+                    <a class="link" href="https://deck.gl/docs" target="_blank" rel="noopener">官方文件</a>
+                </div>
+            </article>
+
+            <!-- ================== Low-level WebGL ================== -->
+            <article class="card" data-tags="lowlevel">
+                <div class="row">
+                    <div class="logo">RGL</div>
+                    <div>
+                        <p class="name">regl</p>
+                        <p class="meta">Functional WebGL 抽象：減少狀態管理負擔，適合 shader/渲染管線客製</p>
+                    </div>
+                </div>
+                <div class="tags">
+                    <span class="tag">底層 WebGL</span>
+                    <span class="tag good">控制力：高</span>
+                    <span class="tag warn">工程成本：高</span>
+                </div>
+                <ul class="bul">
+                    <li>適合想「更接近 WebGL」又不想手動管太多 state 的人</li>
+                </ul>
+                <div class="links">
+                    <a class="link" href="https://github.com/regl-project/regl" target="_blank" rel="noopener">官方
+                        GitHub</a>
+                    <a class="link" href="https://regl-project.github.io/" target="_blank" rel="noopener">官方網站</a>
+                </div>
+            </article>
+
+            <article class="card" data-tags="lowlevel">
+                <div class="row">
+                    <div class="logo">OGL</div>
+                    <div>
+                        <p class="name">OGL</p>
+                        <p class="meta">極簡 WebGL Library：更少抽象、更靠近 WebGL，適合自寫 shader</p>
+                    </div>
+                </div>
+                <div class="tags">
+                    <span class="tag">底層 WebGL</span>
+                    <span class="tag good">輕量</span>
+                    <span class="tag warn">功能少</span>
+                </div>
+                <ul class="bul">
+                    <li>若你追求「最小抽象層」並喜歡自己控渲染細節，OGL 很合適</li>
+                </ul>
+                <div class="links">
+                    <a class="link" href="https://github.com/oframe/ogl" target="_blank" rel="noopener">官方 GitHub</a>
+                    <a class="link" href="https://oframe.github.io/ogl/examples/" target="_blank" rel="noopener">官方
+                        Examples</a>
+                </div>
+            </article>
+
+            <!-- ================== Engine-to-Web export ================== -->
+            <article class="card" data-tags="export">
+                <div class="row">
+                    <div class="logo">U</div>
+                    <div>
+                        <p class="name">Unity WebGL</p>
+                        <p class="meta">用 Unity 直接 Build 到瀏覽器（產生 WebGL build 輸出，適合遊戲式互動）</p>
+                    </div>
+                </div>
+                <div class="tags">
+                    <span class="tag">引擎匯出到 Web</span>
+                    <span class="tag good">互動：強</span>
+                    <span class="tag warn">載入成本：高</span>
+                </div>
+                <ul class="bul">
+                    <li>適合重度互動或遊戲化體驗；但檔案量與載入成本通常比純 Web3D 框架高</li>
+                </ul>
+                <div class="links">
+                    <a class="link" href="https://docs.unity3d.com/2021.3/Documentation/Manual/webgl-building.html"
+                        target="_blank" rel="noopener">官方文件：Build WebGL</a>
+                    <a class="link" href="https://unity.com/" target="_blank" rel="noopener">官方網站</a>
+                </div>
+            </article>
+
+            <article class="card" data-tags="export">
+                <div class="row">
+                    <div class="logo">G</div>
+                    <div>
+                        <p class="name">Godot（Exporting for the Web）</p>
+                        <p class="meta">Godot 匯出到 HTML5：官方文件指出需瀏覽器支援 WebAssembly 與 WebGL 2.0</p>
+                    </div>
+                </div>
+                <div class="tags">
+                    <span class="tag">引擎匯出到 Web</span>
+                    <span class="tag good">開源</span>
+                    <span class="tag warn">WebGL2/WASM</span>
+                </div>
+                <ul class="bul">
+                    <li>適合用引擎做互動後再「發布到 Web」</li>
+                </ul>
+                <div class="links">
+                    <a class="link"
+                        href="https://docs.godotengine.org/en/latest/tutorials/export/exporting_for_web.html"
+                        target="_blank" rel="noopener">官方文件：Exporting for Web</a>
+                    <a class="link" href="https://godotengine.org/" target="_blank" rel="noopener">官方網站</a>
+                </div>
+            </article>
+
+            <!-- ================== Standards ================== -->
+            <article class="card" data-tags="standard engine viewer">
+                <div class="row">
+                    <div class="logo">GLB</div>
+                    <div>
+                        <p class="name">glTF / GLB（Khronos）</p>
+                        <p class="meta">Web3D 最常見的「傳輸格式」：強調體積與載入效率（官方稱為 3D Asset Delivery）</p>
+                    </div>
+                </div>
+                <div class="tags">
+                    <span class="tag">標準 / 規範</span>
+                    <span class="tag good">跨引擎通用</span>
+                    <span class="tag">PBR</span>
+                </div>
+                <ul class="bul">
+                    <li>幾乎所有 Web3D 工具鏈都會用到（含 Viewer 與引擎）</li>
+                </ul>
+                <div class="links">
+                    <a class="link" href="https://www.khronos.org/gltf" target="_blank" rel="noopener">官方介紹（Khronos）</a>
+                    <a class="link" href="https://registry.khronos.org/glTF/" target="_blank" rel="noopener">官方
+                        Registry（規格）</a>
+                    <a class="link" href="https://github.com/KhronosGroup/glTF" target="_blank" rel="noopener">官方
+                        GitHub</a>
+                </div>
+            </article>
+
+            <article class="card" data-tags="standard engine">
+                <div class="row">
+                    <div class="logo">GPU</div>
+                    <div>
+                        <p class="name">WebGPU（W3C）</p>
+                        <p class="meta">新一代瀏覽器 GPU API 規範：更貼近現代 GPU（相較 WebGL 更接近底層能力）</p>
+                    </div>
+                </div>
+                <div class="tags">
+                    <span class="tag">標準 / 規範</span>
+                    <span class="tag good">未來趨勢</span>
+                    <span class="tag">W3C</span>
+                </div>
+                <ul class="bul">
+                    <li>若你走 Babylon.js / 新渲染路線，WebGPU 會是重要基礎</li>
+                </ul>
+                <div class="links">
+                    <a class="link" href="https://www.w3.org/TR/webgpu/" target="_blank" rel="noopener">官方規範（W3C TR）</a>
+                    <a class="link" href="https://www.w3.org/TR/WGSL/" target="_blank" rel="noopener">WGSL（著色語言規範）</a>
+                </div>
+            </article>
+
+        </section>
+
+        <footer>
+            這份頁面是「技術總覽用」，不混入論文章節文字；你要我再加「建議選型流程圖」或「IFC→glTF/GLB/XKT 管線圖」也可以。
+        </footer>
+    </div>
+
+    <script>
+        (function () {
+            const q = document.getElementById('q');
+            const cards = Array.from(document.querySelectorAll('#cards .card'));
+            const btns = Array.from(document.querySelectorAll('button[data-filter]'));
+            const reset = document.getElementById('reset');
+
+            const state = { text: '', filters: new Set() };
+
+            function apply() {
+                const txt = state.text.trim().toLowerCase();
+                const f = state.filters;
+
+                cards.forEach(card => {
+                    const tags = (card.getAttribute('data-tags') || '').split(/\s+/).filter(Boolean);
+                    const hay = (card.innerText || '').toLowerCase();
+
+                    const passText = !txt || hay.includes(txt);
+                    const passFilter = f.size === 0 || [...f].every(x => tags.includes(x));
+
+                    card.classList.toggle('hide', !(passText && passFilter));
+                });
+            }
+
+            q.addEventListener('input', () => { state.text = q.value; apply(); });
+
+            btns.forEach(b => {
+                b.addEventListener('click', () => {
+                    const k = b.getAttribute('data-filter');
+                    const on = b.getAttribute('aria-pressed') === 'true';
+                    b.setAttribute('aria-pressed', String(!on));
+                    if (on) state.filters.delete(k); else state.filters.add(k);
+                    apply();
+                });
+            });
+
+            reset.addEventListener('click', () => {
+                state.text = '';
+                state.filters.clear();
+                q.value = '';
+                btns.forEach(b => b.setAttribute('aria-pressed', 'false'));
+                apply();
+            });
+
+            apply();
+        })();
+    </script>
+</body>
+
+</html>

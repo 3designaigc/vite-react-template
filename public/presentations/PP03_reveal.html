@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PP03 MCP + Bonsai BIM 4D</title>
+  <link rel="stylesheet" href="../reveal.js/dist/reveal.css">
+  <link rel="stylesheet" href="../reveal.js/dist/theme/white.css">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root { --accent: #496f55; }
+
+    :root {
+      color-scheme: light;
+      --bg: #f4f4f2;
+      --paper: #ffffff;
+      --ink: #111111;
+      --muted: #555555;
+      --line: #111111;
+      --teal: #003049; /* Bauhaus Blue */
+      --brick: #d62828; /* Bauhaus Red */
+      --gold: #fcbf49; /* Bauhaus Yellow */
+    }
+    .reveal {
+      font-family: "Noto Sans TC", "Segoe UI", Arial, sans-serif;
+      color: var(--ink);
+      background-color: var(--bg);
+      background-image:
+        linear-gradient(rgba(0, 48, 73, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 48, 73, 0.04) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+    .reveal .slides { text-align: left; }
+    .reveal .slides section { box-sizing: border-box; }
+    .reveal h1, .reveal h2, .reveal h3 {
+      font-family: 'Oswald', 'Noto Sans TC', sans-serif;
+      letter-spacing: -0.01em;
+      text-transform: uppercase;
+      line-height: 1.05;
+      color: var(--ink);
+      font-weight: 700;
+    }
+    .reveal h1 { font-size: 2.38em; max-width: 1040px; }
+    .reveal h2 { font-size: 1.62em; margin-bottom: 0.25em; }
+    .reveal h3 { font-size: 0.82em; color: var(--accent); margin: 0 0 0.45em; text-transform: uppercase; }
+    .reveal p, .reveal li { color: var(--muted); font-size: 0.58em; line-height: 1.6; font-weight: 700; }
+    .kicker {
+      color: var(--brick);
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.4em;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin-bottom: 1.2em;
+    }
+    .lead { max-width: 920px; font-size: 0.72em !important; color: #333333 !important; }
+    .title-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+      gap: 34px;
+      align-items: center;
+    }
+    .split {
+      display: grid;
+      grid-template-columns: minmax(0, 0.95fr) minmax(300px, 1.05fr);
+      gap: 28px;
+      align-items: center;
+    }
+    .panel-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 24px; }
+    .panel {
+      border: 3px solid var(--line);
+      background: #fff;
+      padding: 16px;
+      min-height: 112px;
+      box-shadow: 4px 4px 0px #111111;
+      border-radius: 0;
+    }
+    .panel p { font-size: 0.5em; }
+    .statement {
+      border: 3px solid var(--line);
+      border-left: 12px solid var(--accent);
+      background: #fff;
+      padding: 24px;
+      max-width: 1000px;
+      box-shadow: 4px 4px 0px #111111;
+      border-radius: 0;
+    }
+    .statement p { font-size: 0.76em !important; color: var(--ink) !important; }
+    .side-stage {
+      height: 420px;
+      border: 3px solid var(--line);
+      background:
+        linear-gradient(135deg, color-mix(in srgb, var(--accent) 20%, transparent), transparent 45%),
+        linear-gradient(315deg, rgba(214, 40, 40, 0.15), transparent 38%),
+        #fff;
+      display: grid;
+      place-items: center;
+      padding: 22px;
+      text-align: center;
+      box-shadow: 6px 6px 0px #111111;
+      border-radius: 0;
+    }
+    .side-stage strong { color: var(--accent); font-family: 'Oswald', sans-serif; font-size: 1.1em; line-height: 1.25; white-space: pre-line; text-transform: uppercase; }
+    .flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 12px; }
+    .flow .step { border: 3px solid var(--line); background: #fff; padding: 10px; min-height: 108px; box-shadow: 4px 4px 0px #111111; border-radius: 0; }
+    .flow b { color: var(--accent); font-size: 0.4em; display: block; margin-bottom: 0.3em; font-family: 'Oswald', sans-serif; }
+    .flow p { font-size: 0.43em; line-height: 1.4; }
+    .media-frame {
+      border: 3px solid var(--line);
+      background: #fff;
+      min-height: 360px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      box-shadow: 6px 6px 0px #111111;
+      border-radius: 0;
+    }
+    .media-frame img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      max-height: 520px;
+      object-fit: contain;
+    }
+    .caption { color: var(--muted) !important; font-size: 0.38em !important; margin-top: 18px; }
+    .navlinks { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+    .navlinks a {
+      border: 3px solid var(--line);
+      background: #fff;
+      color: var(--accent);
+      text-decoration: none;
+      padding: 8px 12px;
+      font-size: 0.38em;
+      font-weight: 700;
+      font-family: 'Oswald', sans-serif;
+      box-shadow: 3px 3px 0px #111111;
+    }
+    .navlinks a:hover {
+      transform: translate(-1px, -1px);
+      box-shadow: 4px 4px 0px #111111;
+      background: var(--gold);
+      color: var(--ink);
+    }
+    @media (max-width: 900px) {
+      .title-grid, .split, .panel-grid, .flow { grid-template-columns: 1fr; }
+      .side-stage { height: 320px; }
+    }
+    @media (max-width: 640px) {
+      .reveal .slides section { height: 100%; overflow-y: auto; padding: 18px 16px !important; }
+      .reveal h1 { font-size: 1.6em; line-height: 1.12; }
+      .reveal h2 { font-size: 1.18em; line-height: 1.16; }
+      .reveal p, .reveal li { font-size: 0.72em; line-height: 1.48; }
+      .kicker { font-size: 0.5em; margin-bottom: 0.8em; }
+      .lead { font-size: 0.82em !important; line-height: 1.5 !important; }
+      .panel, .statement, .flow .step { padding: 14px; min-height: auto; box-shadow: 2px 2px 0px #111111; }
+      .statement { border-left-width: 6px; }
+      .statement p { font-size: 0.86em !important; }
+      .side-stage { height: 220px; box-shadow: 3px 3px 0px #111111; }
+      .side-stage strong { font-size: 0.88em; }
+      .flow b { font-size: 0.55em; }
+      .flow p, .panel p { font-size: 0.66em; }
+      .navlinks a { font-size: 0.55em; box-shadow: 2px 2px 0px #111111; }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <section>
+        <div class="title-grid">
+          <div>
+            <div class="kicker">PP03 / Technical Extension</div>
+            <h1>結合 MCP 之 Blender Bonsai BIM 4D 應用分析</h1>
+            <p class="lead">從 Open BIM 4D 排程到 AI Agent 語意驅動工作流</p>
+            <div class="navlinks">
+              <a href="index.html">回總入口</a>
+              <a href="PP02_reveal.html">PP02 Web3D</a>
+            </div>
+          </div>
+          <div class="side-stage"><strong>Open BIM
+MCP
+Skill</strong></div>
+        </div>
+      </section>
+
+      <section data-transition="slide">
+        <div class="split">
+          <div>
+            <div class="kicker">PP03 / Technical Extension</div>
+            <h2>Bonsai 4D + MCP：讓 BIM 4D 從手動操作走向語意驅動</h2>
+            <div class="statement fragment fade-right slow"><p>本篇作為 PP02 之後的技術延伸，說明 Blender Bonsai、MCP 與 Skill 如何把 IFC 分析、任務建立、排程與動畫控制封裝成可重複工作流。</p></div>
+            <div class="panel-grid"><div class="panel fragment fade-up"><h3>核心工具</h3><p>核心工具：Blender Bonsai</p></div><div class="panel fragment fade-up"><h3>核心協定</h3><p>核心協定：Model Context Protocol</p></div><div class="panel fragment fade-up"><h3>核心目標</h3><p>核心目標：降低 BIM 4D 操作門檻並提升流程一致性</p></div></div>
+          </div>
+          <div class="media-frame fragment fade-left slow">
+            <img src="../PP03_analysis/image2.jpeg" alt="Bonsai 4D + MCP：讓 BIM 4D 從手動操作走向語意驅動">
+          </div>
+        </div>
+      </section>
+
+      <section data-transition="slide">
+        <div class="split">
+          <div>
+            <div class="kicker">Problem</div>
+            <h2>研究背景：BIM 4D 的工具斷裂問題</h2>
+            <div class="statement fragment fade-right slow"><p>主流 BIM 商業環境在建模上成熟，但 4D 排程與施工動畫仍常依賴外部工具，造成資料、流程與展示斷裂。</p></div>
+            <div class="panel-grid"><div class="panel fragment fade-up"><h3>模型、排程、動畫與展示常分散在不同工具</h3><p>模型、排程、動畫與展示常分散在不同工具</p></div><div class="panel fragment fade-up"><h3>BIM 與施工排程的整合成本高</h3><p>BIM 與施工排程的整合成本高</p></div><div class="panel fragment fade-up"><h3>Open BIM 需要可實驗、可自動化的替代路徑</h3><p>Open BIM 需要可實驗、可自動化的替代路徑</p></div></div>
+          </div>
+          <div class="media-frame fragment fade-left slow">
+            <img src="../PP03_analysis/image1.png" alt="研究背景：BIM 4D 的工具斷裂問題">
+          </div>
+        </div>
+      </section>
+
+      <section data-transition="slide">
+        <div class="split">
+          <div>
+            <div class="kicker">Research Gap</div>
+            <h2>研究缺口：Bonsai 4D 與 MCP 工作流仍缺少系統性論述</h2>
+            <div class="statement fragment fade-right slow"><p>問題不只在 Bonsai 能不能做 4D，而是如何用 MCP 與 Skill 把操作封裝成可被 AI Agent 執行的任務。</p></div>
+            <div class="panel-grid"><div class="panel fragment fade-up"><h3>Bonsai 在 4D 面向的完整性與特有性需要整理</h3><p>Bonsai 在 4D 面向的完整性與特有性需要整理</p></div><div class="panel fragment fade-up"><h3>MCP 如何連接 Bonsai 並執行 BIM 4D 操作仍待探索</h3><p>MCP 如何連接 Bonsai 並執行 BIM 4D 操作仍待探索</p></div><div class="panel fragment fade-up"><h3>Skill 可將重複任務轉成穩定模板</h3><p>Skill 可將重複任務轉成穩定模板</p></div></div>
+          </div>
+          <div class="media-frame fragment fade-left slow">
+            <img src="../PP03_analysis/image4.png" alt="研究缺口：Bonsai 4D 與 MCP 工作流仍缺少系統性論述">
+          </div>
+        </div>
+      </section>
+
+      <section data-transition="slide">
+        <div class="split">
+          <div>
+            <div class="kicker">Technology Stack</div>
+            <h2>技術基礎：IFC、Bonsai、MCP 與 Skill</h2>
+            <div class="statement fragment fade-right slow"><p>PP03 的技術結構可視為四層：資料層、工具層、協定層與任務層。</p></div>
+            <div class="panel-grid"><div class="panel fragment fade-up"><h3>IFC / buildingSMART</h3><p>IFC / buildingSMART：Open BIM 資料基礎</p></div><div class="panel fragment fade-up"><h3>Blender Bonsai</h3><p>Blender Bonsai：IFC/BIM 操作與 4D 排程環境</p></div><div class="panel fragment fade-up"><h3>MCP 與 Skill</h3><p>MCP 與 Skill：工具連接與流程封裝</p></div></div>
+          </div>
+          <div class="media-frame fragment fade-left slow">
+            <img src="../PP03_analysis/image3.png" alt="技術基礎：IFC、Bonsai、MCP 與 Skill">
+          </div>
+        </div>
+      </section>
+
+      <section data-transition="slide">
+        <div class="split">
+          <div>
+            <div class="kicker">Workflow</div>
+            <h2>研究工作流：IFC -&gt; Bonsai 4D -&gt; MCP 指令 -&gt; Skill 封裝</h2>
+            <div class="statement fragment fade-right slow"><p>工作流的目標是把 4D 建置拆成可描述、可執行、可驗證的任務序列。</p></div>
+            <div class="panel-grid"><div class="panel fragment fade-up"><h3>建立 Work Schedule、Task 與施工動畫</h3><p>建立 Work Schedule、Task 與施工動畫</p></div><div class="panel fragment fade-up"><h3>將模型構件與任務排程關聯</h3><p>將模型構件與任務排程關聯</p></div><div class="panel fragment fade-up"><h3>透過 MCP 與 Skill 封裝 4D 控制流程</h3><p>透過 MCP 與 Skill 封裝 4D 控制流程</p></div></div>
+          </div>
+          <div class="media-frame fragment fade-left slow">
+            <img src="../PP03_analysis/image7.png" alt="研究工作流：IFC -&gt; Bonsai 4D -&gt; MCP 指令 -&gt; Skill 封裝">
+          </div>
+        </div>
+      </section>
+
+      <section data-transition="slide">
+        <div class="split">
+          <div>
+            <div class="kicker">Implementation</div>
+            <h2>系統實作：Bonsai 4D 排程與動畫模擬</h2>
+            <div class="statement fragment fade-right slow"><p>Bonsai 不只是 IFC 檢視器，也能在同一環境中建立施工任務、任務條、模型關聯與動畫模擬。</p></div>
+            <div class="panel-grid"><div class="panel fragment fade-up"><h3>建立施工任務與時間資訊</h3><p>建立施工任務與時間資訊</p></div><div class="panel fragment fade-up"><h3>將模型構件與任務關聯</h3><p>將模型構件與任務關聯</p></div><div class="panel fragment fade-up"><h3>使用 Animation Tools 與 Task Bars 呈現施工順序</h3><p>使用 Animation Tools 與 Task Bars 呈現施工順序</p></div></div>
+          </div>
+          <div class="media-frame fragment fade-left slow">
+            <img src="../PP03_analysis/image6.png" alt="系統實作：Bonsai 4D 排程與動畫模擬">
+          </div>
+        </div>
+      </section>
+
+      <section data-transition="slide">
+        <div class="split">
+          <div>
+            <div class="kicker">Findings</div>
+            <h2>三項發現：Bonsai 4D 具備完整性、特有性與自動化潛力</h2>
+            <div class="statement fragment fade-right slow"><p>實作結果顯示，Bonsai 4D 可作為 Open BIM 研究與展示的可行路徑；MCP/Skill 則讓它具備語意控制與自動化意義。</p></div>
+            <div class="panel-grid"><div class="panel fragment fade-up"><h3>Bonsai 具備 BIM 4D 應用的基本功能完整性</h3><p>Bonsai 具備 BIM 4D 應用的基本功能完整性</p></div><div class="panel fragment fade-up"><h3>相較商業 BIM 工作流，Bonsai 在 4D 面向展現開源整合優勢</h3><p>相較商業 BIM 工作流，Bonsai 在 4D 面向展現開源整合優勢</p></div><div class="panel fragment fade-up"><h3>MCP 與 Skill 讓 Bonsai 4D 具備語意控制與流程封裝潛力</h3><p>MCP 與 Skill 讓 Bonsai 4D 具備語意控制與流程封裝潛力</p></div></div>
+          </div>
+          <div class="media-frame fragment fade-left slow">
+            <img src="../PP03_analysis/image8.jpeg" alt="三項發現：Bonsai 4D 具備完整性、特有性與自動化潛力">
+          </div>
+        </div>
+      </section>
+
+      <section data-transition="slide">
+        <div class="split">
+          <div>
+            <div class="kicker">Bridge</div>
+            <h2>銜接網站：PP03 是 PP02 Web3D 之後的自動化延伸</h2>
+            <div class="statement fragment fade-right slow"><p>PP02 展示模型如何進入瀏覽器，PP03 則說明模型、任務與動畫資料如何被更穩定地建立與控制。</p></div>
+            <div class="panel-grid"><div class="panel fragment fade-up"><h3>PP02</h3><p>PP02：Web3D 展示與類 4D 互動敘事</p></div><div class="panel fragment fade-up"><h3>PP03</h3><p>PP03：Bonsai 4D 排程、MCP 指令與 Skill 封裝</p></div><div class="panel fragment fade-up"><h3>未來</h3><p>未來：Web 視覺化、Digital Twin、5D 成本與 6D 維運延伸</p></div></div>
+          </div>
+          <div class="media-frame fragment fade-left slow">
+            <img src="../PP03_analysis/image5.jpeg" alt="銜接網站：PP03 是 PP02 Web3D 之後的自動化延伸">
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+  <script src="../reveal.js/dist/reveal.js"></script>
+  <script>
+    const mobileQuery = window.matchMedia("(max-width: 640px)");
+    const deckSize = mobileQuery.matches
+      ? { width: 390, height: 760, margin: 0.02, center: false }
+      : { width: 1280, height: 720, margin: 0.05, center: true };
+    Reveal.initialize({
+      hash: true,
+      controls: true,
+      progress: true,
+      center: deckSize.center,
+      transition: "slide",
+      width: deckSize.width,
+      height: deckSize.height,
+      margin: deckSize.margin,
+      minScale: 0.2,
+      maxScale: 1.4
+    });
+    mobileQuery.addEventListener("change", () => window.location.reload());
+  </script>
+</body>
+</html>

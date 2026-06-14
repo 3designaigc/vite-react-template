@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Viewer: glb\AIGC.YY_006E.glb</title>
+    <style>
+        :root {
+            --bg-dark: #111111;
+            --sidebar-bg: #1a1a1a;
+            --accent: #d896ff;
+            --text: #ffffff;
+            --text-muted: #888888;
+            --border: #333333;
+        }
+        body { margin: 0; background-color: var(--bg-dark); overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: var(--text); }
+        canvas { display: block; }
+        
+        #loader {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            color: white; font-size: 1.2rem; pointer-events: none;
+            background: rgba(0,0,0,0.8); padding: 30px; border-radius: 12px; z-index: 1000;
+            text-align: center; border: 1px solid var(--border);
+        }
+
+        /* Floating Control Panel */
+        #ui-container {
+            position: fixed; top: 20px; right: 20px;
+            width: 240px; background: rgba(26, 26, 26, 0.85);
+            border: 1px solid var(--border); border-radius: 12px;
+            display: flex; flex-direction: column;
+            z-index: 100; padding: 16px;
+            overflow-y: auto; max-height: calc(100vh - 40px);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            scrollbar-width: none; /* Firefox */
+        }
+        #ui-container::-webkit-scrollbar { display: none; /* Safari and Chrome */ }
+        
+        h1 { font-size: 16px; margin-top: 0; margin-bottom: 16px; font-weight: 600; }
+        
+        .section-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; display: block; }
+
+        /* HDRI Grid */
+        .hdri-grid { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+        .hdri-item { 
+            padding: 8px 10px; background: #222; border-radius: 6px; cursor: pointer;
+            border: 1px solid var(--border); transition: all 0.2s;
+            display: flex; flex-direction: column;
+        }
+        .hdri-item:hover { background: #2a2a2a; }
+        .hdri-item.active { border-color: var(--accent); background: rgba(216, 150, 255, 0.1); }
+        .hdri-name { font-size: 12px; font-weight: 500; }
+        .hdri-desc { font-size: 9px; color: var(--text-muted); margin-top: 2px; }
+
+        /* Rotation Dial */
+        .dial-container { 
+            display: flex; justify-content: center; align-items: center;
+            padding: 5px 0 10px 0; position: relative;
+            margin-bottom: 16px;
+        }
+        .dial-svg { width: 90px; height: 90px; cursor: crosshair; }
+        .dial-bg { fill: none; stroke: var(--border); stroke-width: 2; }
+        .dial-progress { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; }
+        .dial-handle { fill: var(--accent); }
+        .dial-center { 
+            position: absolute; width: 50px; height: 50px; 
+            background: #222; border-radius: 50%; 
+            display: flex; justify-content: center; align-items: center;
+            border: 1px solid var(--border);
+        }
+        .dial-icon { font-size: 16px; opacity: 0.8; }
+
+        /* Controls */
+        .control-group { margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px; }
+        .control-row { display: flex; flex-direction: column; gap: 4px; }
+        .control-row label { font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between; }
+        .control-row input[type=range] { accent-color: var(--accent); width: 100%; height: 4px; }
+        
+        .checkbox-row { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+        input[type=checkbox] { accent-color: var(--accent); }
+
+        /* Bottom Controls */
+        #bottom-controls {
+            position: fixed; bottom: 20px; left: 20px;
+            background: rgba(0,0,0,0.6); padding: 8px 16px; border-radius: 30px;
+            display: flex; align-items: center; gap: 12px; backdrop-filter: blur(10px);
+            border: 1px solid var(--border); z-index: 50;
+        }
+        #anim-slider { width: 180px; accent-color: var(--accent); height: 4px; }
+        .play-btn { background: none; border: none; color: white; cursor: pointer; font-size: 14px; padding: 0; }
+
+        .credit { position: fixed; bottom: 10px; right: 320px; font-size: 10px; color: #444; }
+
+        /* Mobile RWD */
+        #ui-toggle-btn {
+            display: none;
+            position: fixed; top: 20px; right: 20px;
+            background: rgba(26, 26, 26, 0.85);
+            border: 1px solid var(--border); border-radius: 12px;
+            color: var(--text); padding: 10px 16px;
+            z-index: 101; cursor: pointer;
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: background 0.2s;
+        }
+        #ui-toggle-btn:hover { background: rgba(40, 40, 40, 0.9); }
+
+        @media (max-width: 768px) {
+            #ui-toggle-btn {
+                display: block;
+            }
+            #ui-container {
+                transform: translateX(120%);
+                opacity: 0;
+                pointer-events: none;
+                transition: transform 0.3s ease, opacity 0.3s ease;
+                top: 70px; /* Below the button */
+                max-height: calc(100vh - 90px);
+            }
+            #ui-container.show {
+                transform: translateX(0);
+                opacity: 1;
+                pointer-events: auto;
+            }
+            .credit { right: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="loader">Loading glb/AIGC.YY_006AniE.glb...</div>
+    
+    <button id="ui-toggle-btn">⚙️ 設定</button>
+
+    <div id="ui-container">
+        <h1>環境 & 光源</h1>
+        
+        <span class="section-label">HDRI 佈景</span>
+        <div class="hdri-grid">
+            <div class="hdri-item active" id="hdri-0" onclick="changeHDRI(0)">
+                <span class="hdri-name">Docklands 02</span>
+                <span class="hdri-desc">Industrial harbor</span>
+            </div>
+            <div class="hdri-item" id="hdri-1" onclick="changeHDRI(1)">
+                <span class="hdri-name">Dikhololo Sunset</span>
+                <span class="hdri-desc">Warm sunset</span>
+            </div>
+            <div class="hdri-item" id="hdri-2" onclick="changeHDRI(2)">
+                <span class="hdri-name">Golden Gate Hills</span>
+                <span class="hdri-desc">Outdoor landscape</span>
+            </div>
+        </div>
+
+        <span class="section-label">光源旋轉</span>
+        <div class="dial-container">
+            <svg class="dial-svg" id="rotation-dial" viewBox="0 0 100 100">
+                <circle class="dial-bg" cx="50" cy="50" r="45" />
+                <path class="dial-progress" id="dial-path" d="" />
+                <circle class="dial-handle" id="dial-handle" cx="50" cy="5" r="4" />
+            </svg>
+            <div class="dial-center">
+                <span class="dial-icon">☀️</span>
+            </div>
+        </div>
+
+        <span class="section-label">環境設定</span>
+        <div class="control-group">
+            <div class="control-row">
+                <label>環境強度 <span id="val-env">1.0</span></label>
+                <input type="range" id="input-env" min="0" max="5" step="0.1" value="1">
+            </div>
+            <div class="control-row">
+                <label>曝光度 <span id="val-exposure">1.0</span></label>
+                <input type="range" id="input-exposure" min="0" max="3" step="0.1" value="1">
+            </div>
+            <div class="checkbox-row">
+                <input type="checkbox" id="bg-toggle">
+                <label for="bg-toggle">顯示背景</label>
+            </div>
+        </div>
+
+        <span class="section-label">主光源設定</span>
+        <div class="control-group">
+            <div class="control-row">
+                <label>光線強度 <span id="val-light">1.5</span></label>
+                <input type="range" id="input-light" min="0" max="5" step="0.1" value="1.5">
+            </div>
+        </div>
+    </div>
+
+    <div id="bottom-controls" style="display: none;">
+        <button class="play-btn" id="play-pause-btn">⏸</button>
+        <input type="range" id="anim-slider" min="0" max="1" step="0.001" value="0">
+    </div>
+
+    <div class="credit">Powered by Babylon.js WebGPU</div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "@babylonjs/core": "https://esm.sh/@babylonjs/core@^7.0.0",
+            "@babylonjs/loaders": "https://esm.sh/@babylonjs/loaders@^7.0.0",
+            "@babylonjs/materials": "https://esm.sh/@babylonjs/materials@^7.0.0"
+        }
+    }
+    </script>
+
+    <script type="module">
+        import * as BABYLON from '@babylonjs/core';
+        import '@babylonjs/loaders';
+        import { ShadowOnlyMaterial } from '@babylonjs/materials';
+
+        let engine, scene, camera, mainLight, modelRoot;
+        let isPlaying = true;
+        let envRotation = 0;
+
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const animSlider = document.getElementById('anim-slider');
+        const bottomControls = document.getElementById('bottom-controls');
+        
+        const dial = document.getElementById('rotation-dial');
+        const dialPath = document.getElementById('dial-path');
+        const dialHandle = document.getElementById('dial-handle');
+
+        const inputEnv = document.getElementById('input-env');
+        const inputExposure = document.getElementById('input-exposure');
+        const inputLight = document.getElementById('input-light');
+        const bgToggle = document.getElementById('bg-toggle');
+        
+        const valEnv = document.getElementById('val-env');
+        const valExposure = document.getElementById('val-exposure');
+        const valLight = document.getElementById('val-light');
+
+        const hdriUrls = [
+            'https://assets.babylonjs.com/environments/environmentSpecular.env',
+            'https://assets.babylonjs.com/environments/studio.env',
+            'https://assets.babylonjs.com/environments/parking.env'
+        ];
+
+        window.changeHDRI = (index) => {
+            const items = document.querySelectorAll('.hdri-item');
+            items.forEach((item, i) => {
+                if(i === index) item.classList.add('active');
+                else item.classList.remove('active');
+            });
+
+            if (scene) {
+                const envTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(hdriUrls[index], scene);
+                scene.environmentTexture = envTexture;
+                if (bgToggle.checked) {
+                    scene.createDefaultSkybox(envTexture, true, 1000);
+                }
+            }
+        };
+
+        inputEnv.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            valEnv.innerText = val.toFixed(1);
+            if (scene && scene.environmentTexture) {
+                scene.environmentIntensity = val;
+            }
+        });
+
+        inputExposure.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            valExposure.innerText = val.toFixed(1);
+            if (scene) {
+                scene.imageProcessingConfiguration.exposure = val;
+            }
+        });
+
+        inputLight.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            valLight.innerText = val.toFixed(1);
+            if (mainLight) mainLight.intensity = val;
+        });
+
+        bgToggle.addEventListener('change', (e) => {
+            if (scene) {
+                if (e.target.checked && scene.environmentTexture) {
+                    scene.createDefaultSkybox(scene.environmentTexture, true, 1000);
+                } else {
+                    const skybox = scene.getMeshByName("hdrSkyBox");
+                    if (skybox) skybox.dispose();
+                }
+            }
+        });
+
+        init();
+
+        async function init() {
+            const canvas = document.createElement('canvas');
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            document.body.prepend(canvas);
+
+            const isWebGPUSupported = await BABYLON.WebGPUEngine.IsSupportedAsync;
+            if (isWebGPUSupported) {
+                engine = new BABYLON.WebGPUEngine(canvas);
+                await engine.initAsync();
+            } else {
+                engine = new BABYLON.Engine(canvas, true);
+            }
+
+            scene = new BABYLON.Scene(engine);
+            scene.clearColor = new BABYLON.Color4(0.07, 0.07, 0.07, 1);
+
+            camera = new BABYLON.ArcRotateCamera("camera", BABYLON.Tools.ToRadians(45), BABYLON.Tools.ToRadians(65), 10, BABYLON.Vector3.Zero(), scene);
+            camera.attachControl(canvas, true);
+            camera.lowerRadiusLimit = 0.1;
+            camera.upperRadiusLimit = 100;
+
+            mainLight = new BABYLON.DirectionalLight("dirLight", new BABYLON.Vector3(-1, -2, -1), scene);
+            mainLight.position = new BABYLON.Vector3(10, 20, 10);
+            mainLight.intensity = 1.5;
+
+            const shadowGenerator = new BABYLON.ShadowGenerator(1024, mainLight);
+            shadowGenerator.useBlurExponentialShadowMap = true;
+            shadowGenerator.blurKernel = 32;
+
+            const hemiLight = new BABYLON.HemisphericLight("hemiLight", new BABYLON.Vector3(0, 1, 0), scene);
+            hemiLight.intensity = 0.3;
+
+            // Initial HDRI
+            changeHDRI(0);
+
+            // Loader
+            try {
+                const result = await BABYLON.SceneLoader.ImportMeshAsync("", "glb/", "AIGC.YY_006AniE.glb", scene);
+                modelRoot = result.meshes[0];
+                
+                const boundingInfo = modelRoot.getHierarchyBoundingVectors();
+                const center = boundingInfo.max.add(boundingInfo.min).scale(0.5);
+                const size = boundingInfo.max.subtract(boundingInfo.min);
+                
+                modelRoot.position = modelRoot.position.subtract(center);
+                modelRoot.position.y += size.y / 2;
+
+                result.meshes.forEach(m => {
+                    shadowGenerator.addShadowCaster(m);
+                    m.receiveShadows = true;
+                });
+
+                const maxDim = Math.max(size.x, size.y, size.z);
+                camera.radius = maxDim * 2.5;
+                camera.setTarget(BABYLON.Vector3.Zero());
+
+                if (scene.animationGroups.length > 0) {
+                    bottomControls.style.display = 'flex';
+                }
+
+                document.getElementById('loader').style.display = 'none';
+
+                // Ground for shadows
+                const ground = BABYLON.MeshBuilder.CreatePlane("ground", { size: 20 }, scene);
+                ground.rotation.x = Math.PI / 2;
+                ground.position.y = -0.01;
+                ground.receiveShadows = true;
+                const groundMat = new ShadowOnlyMaterial("groundMat", scene);
+                ground.material = groundMat;
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('loader').innerText = 'Error loading 3D model';
+            }
+
+            // Dial Logic
+            let isDraggingDial = false;
+            const updateDial = (angle) => {
+                envRotation = angle;
+                const radius = 15;
+                mainLight.position.x = Math.sin(angle) * radius;
+                mainLight.position.z = Math.cos(angle) * radius;
+                mainLight.setDirectionToTarget(BABYLON.Vector3.Zero());
+                
+                const r = 45;
+                const x = 50 + r * Math.sin(angle);
+                const y = 50 - r * Math.cos(angle);
+                dialHandle.setAttribute('cx', x);
+                dialHandle.setAttribute('cy', y);
+                
+                const largeArcFlag = angle > Math.PI ? 1 : 0;
+                dialPath.setAttribute('d', `M 50 5 A 45 45 0 ${largeArcFlag} 1 ${x} ${y}`);
+            };
+
+            const handleDialMove = (e) => {
+                if(!isDraggingDial) return;
+                const rect = dial.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                const dx = e.clientX - centerX;
+                const dy = e.clientY - centerY;
+                let angle = Math.atan2(dx, -dy);
+                if (angle < 0) angle += Math.PI * 2;
+                updateDial(angle);
+            };
+
+            dial.addEventListener('mousedown', () => isDraggingDial = true);
+            window.addEventListener('mouseup', () => isDraggingDial = false);
+            window.addEventListener('mousemove', handleDialMove);
+            
+            updateDial(envRotation);
+
+            // UI Toggle Logic for Mobile
+            const uiToggleBtn = document.getElementById('ui-toggle-btn');
+            const uiContainer = document.getElementById('ui-container');
+            if (uiToggleBtn && uiContainer) {
+                uiToggleBtn.addEventListener('click', () => {
+                    uiContainer.classList.toggle('show');
+                });
+            }
+
+            // UI Listeners
+            playPauseBtn.addEventListener('click', () => {
+                isPlaying = !isPlaying;
+                playPauseBtn.innerText = isPlaying ? '⏸' : '▶';
+                scene.animationGroups.forEach(ag => {
+                    if (isPlaying) ag.play(true);
+                    else ag.pause();
+                });
+            });
+
+            animSlider.addEventListener('input', (e) => {
+                isPlaying = false;
+                playPauseBtn.innerText = '▶';
+                const val = parseFloat(e.target.value);
+                scene.animationGroups.forEach(ag => {
+                    ag.pause();
+                    ag.goToFrame(val * ag.to);
+                });
+            });
+
+            engine.runRenderLoop(() => {
+                scene.render();
+                if (isPlaying && scene.animationGroups.length > 0) {
+                    const ag = scene.animationGroups[0];
+                    animSlider.value = ag.animatables[0].masterFrame / ag.to;
+                }
+            });
+
+            window.addEventListener('resize', () => engine.resize());
+        }
+    </script>
+</body>
+</html>

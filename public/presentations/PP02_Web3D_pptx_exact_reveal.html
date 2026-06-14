@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PP02 Web3D | PPTX Exact Reveal</title>
+  <link rel="stylesheet" href="../reveal.js/dist/reveal.css">
+  <link rel="stylesheet" href="../reveal.js/dist/theme/black.css">
+  <style>
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      background: #000;
+    }
+
+    .reveal {
+      background: #000;
+    }
+
+    .reveal .slides {
+      text-align: center;
+    }
+
+    .reveal .slides section {
+      width: 100%;
+      height: 100%;
+      padding: 0;
+      background: #000;
+    }
+
+    .exact-slide {
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .exact-slide img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      max-width: none;
+      max-height: none;
+      object-fit: contain;
+      margin: 0;
+      border: 0;
+      box-shadow: none;
+      background: #000;
+    }
+
+    .reveal .controls,
+    .reveal .progress {
+      color: rgba(255, 255, 255, 0.72);
+    }
+
+    .reveal .slide-number {
+      color: rgba(255, 255, 255, 0.72);
+      background: rgba(0, 0, 0, 0.42);
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+      <section class="exact-slide"><img src="../PP02_Web3D_exact_slides/slide-01.png" alt="PP02 Web3D PPTX slide 1"></section>
+      <section class="exact-slide"><img src="../PP02_Web3D_exact_slides/slide-02.png" alt="PP02 Web3D PPTX slide 2"></section>
+      <section class="exact-slide"><img src="../PP02_Web3D_exact_slides/slide-03.png" alt="PP02 Web3D PPTX slide 3"></section>
+      <section class="exact-slide"><img src="../PP02_Web3D_exact_slides/slide-04.png" alt="PP02 Web3D PPTX slide 4"></section>
+      <section class="exact-slide"><img src="../PP02_Web3D_exact_slides/slide-05.png" alt="PP02 Web3D PPTX slide 5"></section>
+      <section class="exact-slide"><img src="../PP02_Web3D_exact_slides/slide-06.png" alt="PP02 Web3D PPTX slide 6"></section>
+      <section class="exact-slide"><img src="../PP02_Web3D_exact_slides/slide-07.png" alt="PP02 Web3D PPTX slide 7"></section>
+      <section class="exact-slide"><img src="../PP02_Web3D_exact_slides/slide-08.png" alt="PP02 Web3D PPTX slide 8"></section>
+      <section class="exact-slide"><img src="../PP02_Web3D_exact_slides/slide-09.png" alt="PP02 Web3D PPTX slide 9"></section>
+    </div>
+  </div>
+
+  <script src="../reveal.js/dist/reveal.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true,
+      width: 1920,
+      height: 1080,
+      margin: 0,
+      minScale: 0.1,
+      maxScale: 2.0,
+      controls: true,
+      progress: true,
+      slideNumber: "c/t",
+      center: true,
+      transition: "fade",
+      backgroundTransition: "fade",
+      transitionSpeed: "default"
+    });
+  </script>
+</body>
+</html>

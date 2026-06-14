@@ -1,0 +1,923 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GLB Viewer Pro</title>
+
+  <!-- importmap：瀏覽器原生解析，不依賴任何打包工具 -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three":          "https://esm.sh/three@0.161.0",
+      "three/addons/":  "https://esm.sh/three@0.161.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #080c10;
+      --surface:  #0e1318;
+      --border:   rgba(255,255,255,.08);
+      --border2:  rgba(255,255,255,.14);
+      --accent:   #4f8cff;
+      --accent2:  #00d2b4;
+      --text:     #dde4f0;
+      --muted:    rgba(221,228,240,.45);
+      --panel-w:  300px;
+      --radius:   10px;
+    }
+
+    html, body {
+      height: 100%; background: var(--bg);
+      color: var(--text);
+      font-family: 'Sora', system-ui, sans-serif;
+      overflow: hidden;
+    }
+
+    /* ── Canvas ── */
+    #app { position: fixed; inset: 0; }
+    canvas { display: block; width: 100%; height: 100%; }
+
+    /* ── Top bar ── */
+    #topbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+      height: 48px;
+      display: flex; align-items: center; gap: 12px;
+      padding: 0 18px;
+      background: rgba(8,12,16,.82);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(16px);
+    }
+    #logo {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; font-weight: 600; letter-spacing: .04em;
+      color: var(--text);
+    }
+    #logo svg { width:20px; height:20px; }
+    #logo-dot { width:6px; height:6px; border-radius:50%; background:var(--accent2); margin-left:2px; }
+    #topbar-sep { flex:1; }
+    #topbar-status {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; color: var(--muted);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      max-width: 340px;
+    }
+    #topbar-status.ok { color: var(--accent2); }
+    #topbar-status.err { color: #ff5f5f; }
+
+    /* ── Left panel ── */
+    #panel {
+      position: fixed; top: 48px; left: 0; bottom: 0; z-index: 10;
+      width: var(--panel-w);
+      background: rgba(10,14,20,.78);
+      border-right: 1px solid var(--border);
+      backdrop-filter: blur(16px);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* section header */
+    .sec-head {
+      padding: 14px 16px 8px;
+      font-size: 9px; font-weight: 600;
+      letter-spacing: .12em; text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* drop zone */
+    #drop-zone {
+      margin: 12px;
+      border: 1px dashed rgba(79,140,255,.35);
+      border-radius: var(--radius);
+      padding: 18px 12px;
+      text-align: center;
+      background: rgba(79,140,255,.04);
+      cursor: pointer;
+      transition: background .2s, border-color .2s;
+      position: relative;
+    }
+    #drop-zone:hover, #drop-zone.dragover {
+      background: rgba(79,140,255,.10);
+      border-color: rgba(79,140,255,.65);
+    }
+    #drop-zone input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    #drop-icon { margin-bottom: 8px; opacity: .55; }
+    #drop-label { font-size: 12px; color: var(--muted); line-height: 1.5; }
+    #drop-label strong { color: var(--accent); font-weight: 500; }
+
+    /* model info */
+    #info-box {
+      margin: 0 12px;
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .info-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-key { color: var(--muted); }
+    .info-val {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text); font-size: 11px;
+    }
+    .info-val.accent { color: var(--accent2); }
+
+    /* controls */
+    .btn-group {
+      display: flex; flex-direction: column; gap: 6px;
+      padding: 10px 12px;
+    }
+    .btn {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 12px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Sora', sans-serif;
+      font-size: 12px; font-weight: 500;
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+    }
+    .btn:hover { background: rgba(255,255,255,.10); border-color: var(--border2); }
+    .btn.active { background: rgba(79,140,255,.15); border-color: rgba(79,140,255,.4); color: var(--accent); }
+    .btn svg { width:14px; height:14px; opacity:.7; flex-shrink:0; }
+
+    /* anim controls */
+    #anim-section { border-top: 1px solid var(--border); }
+    #anim-controls { padding: 10px 12px; display:none; flex-direction:column; gap:8px; }
+    #anim-controls.visible { display:flex; }
+    #anim-list { display:flex; flex-direction:column; gap:4px; }
+    .anim-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 10px;
+      border-radius: 7px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--border);
+      font-size: 11px; cursor: pointer;
+      transition: background .15s;
+    }
+    .anim-item:hover { background: rgba(255,255,255,.07); }
+    .anim-item.playing { border-color: rgba(0,210,180,.4); color: var(--accent2); }
+    .anim-dot { width:6px; height:6px; border-radius:50%; background:var(--muted); flex-shrink:0; }
+    .anim-item.playing .anim-dot { background:var(--accent2); }
+
+    /* bottom hint */
+    #hint {
+      margin-top: auto;
+      padding: 10px 14px;
+      border-top: 1px solid var(--border);
+      font-size: 10px; color: var(--muted); line-height: 1.6;
+    }
+    .mono-sm { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--accent); }
+
+    /* ── Corner badge ── */
+    #corner {
+      position: fixed; bottom: 14px; right: 16px; z-index: 20;
+      font-size: 10px; color: rgba(255,255,255,.18);
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: .06em;
+    }
+
+    /* ── Loading overlay ── */
+    #loader {
+      position: fixed; inset: 0; z-index: 50;
+      background: rgba(8,12,16,.92);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 16px;
+      pointer-events: none;
+      opacity: 0; transition: opacity .3s;
+    }
+    #loader.active { opacity: 1; pointer-events: all; }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 2px solid rgba(79,140,255,.2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loader-text { font-size: 13px; color: var(--muted); }
+
+    /* ── Timeline bar ── */
+    #timeline {
+      position: fixed; bottom: 0; left: var(--panel-w); right: 0; z-index: 20;
+      height: 64px;
+      background: rgba(8,12,16,.88);
+      border-top: 1px solid var(--border);
+      backdrop-filter: blur(16px);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 20px;
+      gap: 6px;
+    }
+    #timeline.visible { display: flex; }
+
+    /* scrubber row */
+    #tl-scrub-row {
+      display: flex; align-items: center; gap: 10px;
+    }
+    #tl-play {
+      width: 28px; height: 28px; flex-shrink: 0;
+      background: rgba(79,140,255,.15);
+      border: 1px solid rgba(79,140,255,.35);
+      border-radius: 50%;
+      color: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: background .15s;
+    }
+    #tl-play:hover { background: rgba(79,140,255,.28); }
+    #tl-play svg { width:12px; height:12px; }
+
+    #tl-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; color: var(--muted);
+      white-space: nowrap; min-width: 80px;
+    }
+
+    /* custom range slider */
+    #tl-slider {
+      flex: 1;
+      -webkit-appearance: none; appearance: none;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255,255,255,.12);
+      outline: none;
+      cursor: pointer;
+      position: relative;
+    }
+    #tl-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 3px rgba(79,140,255,.25);
+      cursor: grab;
+      transition: box-shadow .15s;
+    }
+    #tl-slider::-webkit-slider-thumb:active { cursor: grabbing; box-shadow: 0 0 0 5px rgba(79,140,255,.35); }
+    #tl-slider::-moz-range-thumb {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--accent); border: none;
+      cursor: grab;
+    }
+    /* filled track via gradient */
+    #tl-slider { --pct: 0%; background: linear-gradient(to right, var(--accent) var(--pct), rgba(255,255,255,.12) var(--pct)); }
+
+    /* speed + clip row */
+    #tl-meta-row {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .tl-label {
+      font-size: 9px; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--muted); white-space: nowrap;
+    }
+    #tl-clip-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; color: var(--accent2);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      max-width: 180px;
+    }
+    #tl-speed {
+      -webkit-appearance: none; appearance: none;
+      width: 80px; height: 3px;
+      border-radius: 2px;
+      background: linear-gradient(to right, var(--accent2) var(--spct, 33%), rgba(255,255,255,.12) var(--spct, 33%));
+      outline: none; cursor: pointer;
+    }
+    #tl-speed::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 11px; height: 11px; border-radius: 50%;
+      background: var(--accent2);
+    }
+    #tl-speed-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; color: var(--accent2); min-width: 28px;
+    }
+    #tl-loop {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 5px;
+      font-size: 10px; color: var(--muted); cursor: pointer;
+    }
+    #tl-loop input { accent-color: var(--accent2); cursor: pointer; }
+
+    @media (max-width: 600px) {
+      :root { --panel-w: 100vw; }
+      #panel { top: auto; bottom: 0; left: 0; right: 0; width: 100%; height: auto; max-height: 50vh; flex-direction: row; flex-wrap: wrap; overflow-y: auto; }
+      #topbar-status { max-width: 140px; }
+      #timeline { left: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Canvas -->
+<div id="app"></div>
+
+<!-- Loading overlay -->
+<div id="loader">
+  <div class="spinner"></div>
+  <div id="loader-text">解析中…</div>
+</div>
+
+<!-- Top bar -->
+<div id="topbar">
+  <div id="logo">
+    <svg viewBox="0 0 20 20" fill="none">
+      <path d="M10 2L18 6.5V13.5L10 18L2 13.5V6.5L10 2Z" stroke="#4f8cff" stroke-width="1.5" stroke-linejoin="round"/>
+      <path d="M10 2V18M2 6.5L18 13.5M18 6.5L2 13.5" stroke="#4f8cff" stroke-width="1" opacity=".4"/>
+    </svg>
+    GLB Viewer
+    <div id="logo-dot"></div>
+  </div>
+  <div id="topbar-sep"></div>
+  <div id="topbar-status">等待選檔…</div>
+</div>
+
+<!-- Left panel -->
+<div id="panel">
+
+  <!-- Drop zone -->
+  <div class="sec-head">載入模型</div>
+  <div id="drop-zone">
+    <input id="fileInput" type="file" accept=".glb,model/gltf-binary" />
+    <div id="drop-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/>
+        <line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+    </div>
+    <div id="drop-label">拖放 <strong>.glb</strong> 檔至此<br>或點擊選擇檔案</div>
+  </div>
+
+  <!-- Model info -->
+  <div class="sec-head" style="margin-top:8px;">模型資訊</div>
+  <div id="info-box">
+    <div class="info-row"><span class="info-key">檔案名稱</span><span class="info-val" id="inf-name">—</span></div>
+    <div class="info-row"><span class="info-key">Mesh 數量</span><span class="info-val accent" id="inf-mesh">—</span></div>
+    <div class="info-row"><span class="info-key">頂點數量</span><span class="info-val" id="inf-vert">—</span></div>
+    <div class="info-row"><span class="info-key">動畫數量</span><span class="info-val" id="inf-anim">—</span></div>
+    <div class="info-row"><span class="info-key">模型尺寸</span><span class="info-val" id="inf-size">—</span></div>
+  </div>
+
+  <!-- Camera / Display controls -->
+  <div class="sec-head" style="margin-top:8px;">視圖控制</div>
+  <div class="btn-group">
+    <button class="btn" id="fitBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+      自動對焦
+    </button>
+    <button class="btn" id="resetBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+      重置相機
+    </button>
+    <button class="btn" id="toggleBgBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      切換背景
+    </button>
+    <button class="btn" id="wireBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 22 20 2 20"/><line x1="12" y1="2" x2="12" y2="20"/><line x1="2" y1="20" x2="22" y2="20"/><line x1="7" y1="11" x2="17" y2="11"/></svg>
+      線框模式
+    </button>
+  </div>
+
+  <!-- Animation controls -->
+  <div id="anim-section">
+    <div class="sec-head">動畫</div>
+    <div id="anim-controls">
+      <div id="anim-list"></div>
+      <button class="btn" id="pauseBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        全部暫停
+      </button>
+    </div>
+    <div id="anim-empty" style="padding:10px 14px;font-size:11px;color:var(--muted);">載入模型後顯示</div>
+  </div>
+
+  <div id="hint">
+    本機伺服器：<span class="mono-sm">python -m http.server 8000</span><br>
+    操作：滑鼠左鍵旋轉 / 右鍵平移 / 滾輪縮放
+  </div>
+</div>
+
+<!-- Timeline bar -->
+<div id="timeline">
+  <div id="tl-scrub-row">
+    <button id="tl-play" title="播放/暫停">
+      <svg id="tl-play-icon" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    </button>
+    <span id="tl-time">0.00 / 0.00s</span>
+    <input id="tl-slider" type="range" min="0" max="1000" value="0" step="1" />
+  </div>
+  <div id="tl-meta-row">
+    <span class="tl-label">片段</span>
+    <span id="tl-clip-name">—</span>
+    <span class="tl-label" style="margin-left:8px;">速度</span>
+    <input id="tl-speed" type="range" min="1" max="300" value="100" step="1" />
+    <span id="tl-speed-val">1.0×</span>
+    <label id="tl-loop"><input id="tl-loop-chk" type="checkbox" checked /> 循環</label>
+  </div>
+</div>
+
+<!-- Corner badge -->
+<div id="corner">THREE.js r161</div>
+
+<script type="module">
+  import * as THREE from "three";
+  import { OrbitControls }   from "three/addons/controls/OrbitControls.js";
+  import { GLTFLoader }      from "three/addons/loaders/GLTFLoader.js";
+  import { DRACOLoader }     from "three/addons/loaders/DRACOLoader.js";
+  import { RGBELoader }      from "three/addons/loaders/RGBELoader.js";
+  import { MeshoptDecoder }  from "three/addons/libs/meshopt_decoder.module.js";
+
+  // ─── DOM refs ───
+  const app         = document.getElementById("app");
+  const statusEl    = document.getElementById("topbar-status");
+  const fileInput   = document.getElementById("fileInput");
+  const dropZone    = document.getElementById("drop-zone");
+  const loaderEl    = document.getElementById("loader");
+  const loaderText  = document.getElementById("loader-text");
+  const animList    = document.getElementById("anim-list");
+  const animCtrl    = document.getElementById("anim-controls");
+  const animEmpty   = document.getElementById("anim-empty");
+
+  // Timeline refs
+  const tlBar       = document.getElementById("timeline");
+  const tlSlider    = document.getElementById("tl-slider");
+  const tlTime      = document.getElementById("tl-time");
+  const tlPlayBtn   = document.getElementById("tl-play");
+  const tlPlayIcon  = document.getElementById("tl-play-icon");
+  const tlClipName  = document.getElementById("tl-clip-name");
+  const tlSpeed     = document.getElementById("tl-speed");
+  const tlSpeedVal  = document.getElementById("tl-speed-val");
+  const tlLoopChk   = document.getElementById("tl-loop-chk");
+
+  // ─── Renderer ───
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.0;
+  renderer.useLegacyLights = false;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  app.appendChild(renderer.domElement);
+
+  // ─── Scene ───
+  const scene = new THREE.Scene();
+  let darkBg = true;
+  scene.background = new THREE.Color(0x080c10);
+
+  // ─── Camera ───
+  const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.01, 5000);
+  camera.position.set(3, 2, 4);
+
+  // ─── Controls ───
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.06;
+  controls.target.set(0, 0.7, 0);
+
+  // ─── Lights ───
+  const hemi = new THREE.HemisphereLight(0xc8d8ff, 0x1a1a2a, 0.5);
+  scene.add(hemi);
+
+  const dirLight = new THREE.DirectionalLight(0xffffff, 2.5);
+  dirLight.position.set(6, 10, 7);
+  dirLight.castShadow = true;
+  dirLight.shadow.mapSize.set(2048, 2048);
+  dirLight.shadow.bias = -0.00008;
+  dirLight.shadow.normalBias = 0.02;
+  scene.add(dirLight);
+
+  // fill light
+  const fillLight = new THREE.DirectionalLight(0x8ab4f8, 0.6);
+  fillLight.position.set(-6, 4, -4);
+  scene.add(fillLight);
+
+  // ground shadow plane
+  const ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(400, 400),
+    new THREE.ShadowMaterial({ opacity: 0.18 })
+  );
+  ground.rotation.x = -Math.PI / 2;
+  ground.receiveShadow = true;
+  scene.add(ground);
+
+  // ─── HDR ───
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  new RGBELoader().load(
+    "https://threejs.org/examples/textures/equirectangular/venice_sunset_1k.hdr",
+    (hdr) => {
+      scene.environment = pmrem.fromEquirectangular(hdr).texture;
+      hdr.dispose(); pmrem.dispose();
+      setStatus("HDR IBL 已套用", "ok");
+    },
+    undefined,
+    () => setStatus("HDR 載入失敗（不影響顯示）", "")
+  );
+
+  // ─── Loaders ───
+  const loader = new GLTFLoader();
+  const draco = new DRACOLoader();
+  draco.setDecoderPath("https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/libs/draco/");
+  loader.setDRACOLoader(draco);
+  loader.setMeshoptDecoder(MeshoptDecoder);
+
+  // ─── State ───
+  let currentModel = null;
+  let mixer = null;
+  let actions = [];
+  let paused = false;
+  let wireframe = false;
+  let tlDragging = false;        // user is scrubbing
+  let tlDuration = 0;            // max clip duration
+  let tlCurrentClipIdx = 0;     // active clip for timeline display
+  let tlSpeed_val = 1.0;
+  const box = new THREE.Box3();
+  const center = new THREE.Vector3();
+  const size = new THREE.Vector3();
+  const clock = new THREE.Clock();
+
+  // ─── Status ───
+  function setStatus(msg, cls = "") {
+    statusEl.textContent = msg;
+    statusEl.className = cls;
+  }
+
+  // ─── Info panel ───
+  function setInfo(name, meshCount, vertCount, animCount, sizeStr) {
+    document.getElementById("inf-name").textContent = name || "—";
+    document.getElementById("inf-mesh").textContent = meshCount != null ? meshCount : "—";
+    document.getElementById("inf-vert").textContent = vertCount != null ? vertCount.toLocaleString() : "—";
+    document.getElementById("inf-anim").textContent = animCount != null ? animCount : "—";
+    document.getElementById("inf-size").textContent = sizeStr || "—";
+  }
+
+  // ─── Loader overlay ───
+  function showLoader(msg) {
+    loaderText.textContent = msg;
+    loaderEl.classList.add("active");
+  }
+  function hideLoader() {
+    loaderEl.classList.remove("active");
+  }
+
+  // ─── Clear ───
+  function clearModel() {
+    if (!currentModel) return;
+    scene.remove(currentModel);
+    currentModel.traverse(obj => {
+      if (!obj.isMesh) return;
+      obj.geometry?.dispose();
+      [obj.material].flat().forEach(m => {
+        if (!m) return;
+        Object.values(m).forEach(v => { if (v?.isTexture) v.dispose(); });
+        m.dispose?.();
+      });
+    });
+    currentModel = null;
+    mixer = null;
+    actions = [];
+    tlDuration = 0;
+    animCtrl.classList.remove("visible");
+    animEmpty.style.display = "block";
+    animList.innerHTML = "";
+    tlBar.classList.remove("visible");
+    tlSlider.value = 0;
+    tlTime.textContent = "0.00 / 0.00s";
+    tlClipName.textContent = "—";
+    setInfo();
+  }
+
+  // ─── Fit ───
+  function fitToModel(obj) {
+    box.setFromObject(obj);
+    if (box.isEmpty() || !isFinite(box.min.x)) {
+      setStatus("BoundingBox 無效", "err"); return;
+    }
+    box.getCenter(center);
+    box.getSize(size);
+    const maxAxis = Math.max(size.x, size.y, size.z);
+    if (!isFinite(maxAxis) || maxAxis <= 0) return;
+
+    obj.position.sub(center);
+    box.setFromObject(obj);
+    obj.position.y -= box.min.y;
+
+    const fov = camera.fov * Math.PI / 180;
+    const cameraZ = Math.abs(maxAxis / 2 / Math.tan(fov / 2)) * 1.65;
+    camera.position.set(0, maxAxis * 0.55, cameraZ);
+    controls.target.set(0, maxAxis * 0.22, 0);
+    controls.update();
+
+    const d = maxAxis * 1.2;
+    dirLight.shadow.camera.left   = -d;
+    dirLight.shadow.camera.right  =  d;
+    dirLight.shadow.camera.top    =  d;
+    dirLight.shadow.camera.bottom = -d;
+    dirLight.shadow.camera.near   = 0.1;
+    dirLight.shadow.camera.far    = maxAxis * 8;
+    dirLight.shadow.camera.updateProjectionMatrix();
+    dirLight.position.set(d * 0.6, d * 0.9, d * 0.6);
+    fillLight.position.set(-d * 0.6, d * 0.4, -d * 0.4);
+
+    const sx = size.x.toFixed(2), sy = size.y.toFixed(2), sz = size.z.toFixed(2);
+    document.getElementById("inf-size").textContent = `${sx} × ${sy} × ${sz}`;
+
+    setStatus(`對焦完成（最大軸 ${maxAxis.toFixed(2)}）`, "ok");
+  }
+
+  // ─── Shadows ───
+  function enableShadows(obj) {
+    obj.traverse(o => {
+      if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; }
+    });
+  }
+
+  // ─── Wireframe toggle ───
+  function applyWireframe(obj, val) {
+    obj.traverse(o => {
+      if (o.isMesh) {
+        [o.material].flat().forEach(m => { if (m) m.wireframe = val; });
+      }
+    });
+  }
+
+  // ─── Timeline helpers ───
+  function fmt(s) { return s.toFixed(2) + "s"; }
+
+  function updateSliderTrack() {
+    const pct = tlDuration > 0 ? (parseFloat(tlSlider.value) / 1000 * 100) : 0;
+    tlSlider.style.setProperty("--pct", pct + "%");
+  }
+
+  function setTimelineClip(idx) {
+    tlCurrentClipIdx = idx;
+    if (!actions[idx]) return;
+    const clip = actions[idx].getClip();
+    tlDuration = clip.duration;
+    tlClipName.textContent = clip.name || `clip_${idx}`;
+    // highlight active in list
+    document.querySelectorAll(".anim-item").forEach((el, i) => {
+      el.classList.toggle("active-clip", i === idx);
+    });
+  }
+
+  function tlSetPaused(val) {
+    paused = val;
+    actions.forEach(a => { a.paused = val; });
+    document.querySelectorAll(".anim-item").forEach(el => el.classList.toggle("playing", !val));
+    tlPlayIcon.innerHTML = val
+      ? '<polygon points="5 3 19 12 5 21 5 3"/>'
+      : '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+    // sync pause btn in left panel
+    const pauseBtn = document.getElementById("pauseBtn");
+    if (pauseBtn) {
+      pauseBtn.innerHTML = val
+        ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg> 全部播放`
+        : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> 全部暫停`;
+    }
+  }
+
+  // ─── Animations UI ───
+  function buildAnimUI(gltf) {
+    animList.innerHTML = "";
+    actions = [];
+    tlBar.classList.remove("visible");
+
+    if (!gltf.animations?.length) {
+      animCtrl.classList.remove("visible");
+      animEmpty.textContent = "無動畫";
+      animEmpty.style.display = "block";
+      return;
+    }
+
+    mixer = new THREE.AnimationMixer(gltf.scene);
+    gltf.animations.forEach((clip, i) => {
+      const action = mixer.clipAction(clip);
+      action.reset().play();
+      actions.push(action);
+
+      const item = document.createElement("div");
+      item.className = "anim-item playing";
+      item.innerHTML = `<span class="anim-dot"></span><span>${clip.name || "clip_" + i}</span>`;
+
+      item.addEventListener("click", () => {
+        // toggle play state
+        if (action.isRunning() && !action.paused) {
+          action.paused = true;
+          item.classList.remove("playing");
+        } else {
+          action.paused = false;
+          item.classList.add("playing");
+        }
+        // switch timeline to this clip
+        setTimelineClip(i);
+      });
+      animList.appendChild(item);
+    });
+
+    animEmpty.style.display = "none";
+    animCtrl.classList.add("visible");
+
+    // Init timeline with first clip
+    setTimelineClip(0);
+    tlLoopChk.checked = true;
+    tlBar.classList.add("visible");
+    tlSetPaused(false);
+  }
+
+  // ─── Load GLB ───
+  function loadGLBFile(file) {
+    if (!file) return;
+    if (!file.name.toLowerCase().endsWith(".glb")) {
+      setStatus("請選擇 .glb 檔", "err"); return;
+    }
+    clearModel();
+    showLoader("讀取中…");
+    setStatus("讀取中…", "");
+
+    const reader = new FileReader();
+    reader.onerror = () => { hideLoader(); setStatus("FileReader 失敗", "err"); };
+    reader.onload = () => {
+      loaderText.textContent = "解析 GLB…";
+      loader.parse(reader.result, "",
+        (gltf) => {
+          currentModel = gltf.scene;
+
+          let meshCount = 0, vertCount = 0;
+          currentModel.traverse(o => {
+            if (o.isMesh) {
+              meshCount++;
+              if (o.geometry?.attributes?.position)
+                vertCount += o.geometry.attributes.position.count;
+            }
+          });
+
+          if (meshCount === 0) {
+            hideLoader();
+            setStatus("GLB 內無 Mesh！", "err");
+            return;
+          }
+
+          enableShadows(currentModel);
+          scene.add(currentModel);
+          fitToModel(currentModel);
+          buildAnimUI(gltf);
+
+          const animCount = gltf.animations?.length || 0;
+          setInfo(
+            file.name,
+            meshCount,
+            vertCount,
+            animCount,
+            null // size set in fitToModel
+          );
+
+          setStatus(`${file.name} — ${meshCount} Mesh｜${vertCount.toLocaleString()} 頂點｜${animCount} 動畫`, "ok");
+          hideLoader();
+
+          // reset wireframe state
+          wireframe = false;
+          document.getElementById("wireBtn").classList.remove("active");
+        },
+        (err) => {
+          console.error(err);
+          hideLoader();
+          setStatus("解析失敗：" + (err?.message || err), "err");
+        }
+      );
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  // ─── Events ───
+  fileInput.addEventListener("change", e => loadGLBFile(e.target.files?.[0]));
+
+  dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("dragover"); });
+  dropZone.addEventListener("dragleave", () => dropZone.classList.remove("dragover"));
+  dropZone.addEventListener("drop", e => {
+    e.preventDefault();
+    dropZone.classList.remove("dragover");
+    loadGLBFile(e.dataTransfer?.files?.[0]);
+  });
+
+  document.getElementById("fitBtn").addEventListener("click", () => {
+    if (currentModel) fitToModel(currentModel);
+  });
+
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    camera.position.set(3, 2, 4);
+    controls.target.set(0, 0.7, 0);
+    controls.update();
+    setStatus("相機已重置", "");
+  });
+
+  document.getElementById("toggleBgBtn").addEventListener("click", () => {
+    darkBg = !darkBg;
+    scene.background = new THREE.Color(darkBg ? 0x080c10 : 0xdde4f0);
+  });
+
+  document.getElementById("wireBtn").addEventListener("click", function() {
+    wireframe = !wireframe;
+    this.classList.toggle("active", wireframe);
+    if (currentModel) applyWireframe(currentModel, wireframe);
+  });
+
+  document.getElementById("pauseBtn").addEventListener("click", function() {
+    tlSetPaused(!paused);
+  });
+
+  // ─── Timeline events ───
+  tlPlayBtn.addEventListener("click", () => tlSetPaused(!paused));
+
+  // Scrubber: start drag
+  tlSlider.addEventListener("mousedown", () => { tlDragging = true; tlSetPaused(true); });
+  tlSlider.addEventListener("touchstart", () => { tlDragging = true; tlSetPaused(true); }, { passive: true });
+
+  // Scrubber: seek
+  tlSlider.addEventListener("input", () => {
+    if (!mixer || tlDuration <= 0) return;
+    const t = (tlSlider.value / 1000) * tlDuration;
+    // seek all actions
+    actions.forEach(a => {
+      a.time = t % (a.getClip().duration || 1);
+    });
+    mixer.update(0);
+    updateSliderTrack();
+    tlTime.textContent = `${t.toFixed(2)} / ${fmt(tlDuration)}`;
+  });
+
+  // Scrubber: end drag → resume if was playing
+  window.addEventListener("mouseup", () => {
+    if (tlDragging) { tlDragging = false; tlSetPaused(false); }
+  });
+  window.addEventListener("touchend", () => {
+    if (tlDragging) { tlDragging = false; tlSetPaused(false); }
+  });
+
+  // Speed slider
+  tlSpeed.addEventListener("input", () => {
+    tlSpeed_val = tlSpeed.value / 100;
+    tlSpeedVal.textContent = tlSpeed_val.toFixed(1) + "×";
+    actions.forEach(a => { a.timeScale = tlSpeed_val; });
+    // update track fill
+    const spct = ((tlSpeed.value - 1) / (300 - 1) * 100).toFixed(1);
+    tlSpeed.style.setProperty("--spct", spct + "%");
+  });
+
+  // Loop checkbox
+  tlLoopChk.addEventListener("change", () => {
+    const loopMode = tlLoopChk.checked ? THREE.LoopRepeat : THREE.LoopOnce;
+    actions.forEach(a => {
+      a.setLoop(loopMode, Infinity);
+      a.clampWhenFinished = !tlLoopChk.checked;
+    });
+  });
+
+  // ─── Render loop ───
+  function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    const delta = clock.getDelta();
+    if (mixer) {
+      mixer.update(delta);
+
+      // Sync timeline slider (only when not dragging)
+      if (!tlDragging && tlDuration > 0 && actions[tlCurrentClipIdx]) {
+        const t = actions[tlCurrentClipIdx].time;
+        tlSlider.value = (t / tlDuration) * 1000;
+        updateSliderTrack();
+        tlTime.textContent = `${t.toFixed(2)} / ${fmt(tlDuration)}`;
+      }
+    }
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener("resize", () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+</script>
+</body>
+</html>

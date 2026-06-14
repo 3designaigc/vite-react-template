@@ -1,0 +1,1024 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AIGC.4DBIM | 包浩斯 3D 空間藝術大作</title>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f4f4f2;
+      --ink: #111111;
+      --bh-red: #d62828;
+      --bh-blue: #003049;
+      --bh-yellow: #fcbf49;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg);
+      background-image:
+        linear-gradient(rgba(0, 48, 73, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 48, 73, 0.03) 1px, transparent 1px);
+      background-size: 20px 20px;
+      font-family: 'Noto Sans TC', sans-serif;
+      user-select: none;
+    }
+
+    #canvas-container {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      cursor: grab;
+    }
+
+    #canvas-container:active {
+      cursor: grabbing;
+    }
+
+    /* Bauhaus UI Overlays */
+    .bh-overlay {
+      position: absolute;
+      inset: 0;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .top-left {
+      border-left: 6px solid var(--bh-red);
+      padding-left: 14px;
+    }
+
+    .kicker {
+      color: var(--bh-red);
+      font-family: 'Oswald', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: 'Oswald', sans-serif;
+      font-size: 38px;
+      font-weight: 700;
+      line-height: 1.05;
+      color: var(--ink);
+      text-transform: uppercase;
+      letter-spacing: -0.01em;
+    }
+
+    .subtitle {
+      margin: 6px 0 0;
+      font-size: 12px;
+      font-weight: 700;
+      color: #555;
+      letter-spacing: 0.05em;
+    }
+
+    .bottom-right {
+      align-self: flex-end;
+      text-align: right;
+      border-right: 6px solid var(--bh-blue);
+      padding-right: 14px;
+    }
+
+    .motto {
+      font-family: 'Oswald', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      line-height: 1.2;
+    }
+
+    .concept {
+      margin-top: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #666;
+      letter-spacing: 0.08em;
+    }
+
+    .interactive-tip {
+      position: absolute;
+      bottom: 30px;
+      left: 30px;
+      font-family: 'Oswald', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: #888;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tip-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--bh-yellow);
+      border-radius: 50%;
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.9); opacity: 0.6; }
+      50% { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.6; }
+    }
+
+    /* Color indicators */
+    .color-tags {
+      position: absolute;
+      top: 30px;
+      right: 30px;
+      display: flex;
+      gap: 12px;
+      pointer-events: auto; /* Clickable over overlay */
+      z-index: 30;
+    }
+
+    .tag {
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--ink);
+      cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .tag:hover {
+      transform: scale(1.15);
+    }
+    .tag-red { background: var(--bh-red); border-radius: 50%; }
+    .tag-blue { background: var(--bh-blue); }
+    .tag-yellow {
+      background: var(--bh-yellow);
+      clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+      border: none;
+      width: 26px;
+      height: 26px;
+    }
+    .tag-orange-diamond {
+      background: #e67e22; /* Orange */
+      clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+      border: none;
+      width: 26px;
+      height: 26px;
+    }
+
+    /* Minimalist Bauhaus Viewpoint Buttons */
+    .bh-viewpoints {
+      position: absolute;
+      top: 70px;
+      right: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: auto; /* Clickable over overlay */
+      z-index: 20;
+    }
+
+    .bh-viewpoints button {
+      border: 2px solid var(--ink);
+      background: #fff;
+      color: var(--ink);
+      padding: 6px 12px;
+      font-family: 'Oswald', 'Noto Sans TC', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 2px 2px 0px #111111;
+      transition: transform 0.1s, box-shadow 0.1s, background 0.1s;
+      text-transform: uppercase;
+      min-width: 68px;
+      text-align: center;
+    }
+
+    .bh-viewpoints button:hover {
+      transform: translate(-1px, -1px);
+      box-shadow: 3px 3px 0px #111111;
+      background: var(--bh-yellow);
+    }
+
+    .bh-viewpoints button:active {
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0px #111111;
+    }
+
+    /* Bauhaus Floating Painting Cards */
+    .painting-card {
+      position: absolute;
+      top: 180px;
+      left: 30px;
+      width: 250px;
+      background: #fff;
+      border: 3px solid var(--ink);
+      box-shadow: 6px 6px 0px var(--ink);
+      z-index: 25;
+      display: none;
+      flex-direction: column;
+      pointer-events: auto;
+    }
+    .painting-card.is-active {
+      display: flex;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fff;
+      border-bottom: 3px solid var(--ink);
+      padding: 6px 12px;
+    }
+    .card-title {
+      font-family: 'Oswald', 'Noto Sans TC', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .card-close {
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+      border: none;
+      background: transparent;
+      padding: 0;
+      margin: 0;
+      color: var(--ink);
+      font-family: inherit;
+    }
+    .card-close:hover {
+      color: var(--bh-red);
+    }
+    .card-body {
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #fff;
+    }
+    .card-body img {
+      max-width: 100%;
+      max-height: 180px;
+      object-fit: contain;
+      border: 2px solid var(--ink);
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"></div>
+
+  <div class="bh-overlay">
+    <div class="top-left">
+      <div class="kicker">AIGC.4DBIM Exhibition</div>
+      <h1>Suprematist Symphony</h1>
+      <p class="subtitle">大師級包浩斯立體空間：29 全實體方塊交響樂，極致 Z 軸深邃拉開</p>
+    </div>
+
+    <div class="color-tags">
+      <div class="tag tag-red" title="切換至 動畫 A (靜態)"></div>
+      <div class="tag tag-blue" title="切換至 動畫 B (動態)"></div>
+      <div class="tag tag-yellow" title="開啟/關閉 原始畫作 A"></div>
+      <div class="tag tag-orange-diamond" title="開啟/關閉 原始畫作 B"></div>
+    </div>
+
+    <!-- Floating Painting Cards -->
+    <div id="painting-card-a" class="painting-card">
+      <div class="card-header">
+        <span class="card-title">原始畫作 A</span>
+        <button class="card-close" onclick="toggleCard('a', false)">✕</button>
+      </div>
+      <div class="card-body">
+        <img src="HTML/img/A.jpg" alt="Original Artwork A">
+      </div>
+    </div>
+
+    <div id="painting-card-b" class="painting-card">
+      <div class="card-header">
+        <span class="card-title">原始畫作 B</span>
+        <button class="card-close" onclick="toggleCard('b', false)">✕</button>
+      </div>
+      <div class="card-body">
+        <img src="HTML/img/B.jpg" alt="Original Artwork B">
+      </div>
+    </div>
+
+    <div class="bh-viewpoints">
+      <button onclick="snapToView(0, Math.PI / 2.0)">正視</button>
+      <button onclick="snapToView(Math.PI, Math.PI / 2.0)">背視</button>
+      <button onclick="snapToView(-Math.PI / 2.0, Math.PI / 2.0)">左視</button>
+      <button onclick="snapToView(Math.PI / 2.0, Math.PI / 2.0)">右視</button>
+      <button onclick="snapToView(0, 0.01)">頂視</button>
+      <button onclick="snapToView(Math.PI / 4.0, Math.PI / 3.0)">透視</button>
+    </div>
+
+    <div class="interactive-tip">
+      <span class="tip-dot"></span>
+      <span>正視看似二維 ── 運鏡或點擊按鈕即可體驗極致 3D 視差</span>
+    </div>
+
+    <div class="bottom-right">
+      <div class="motto">Volumetric Depth</div>
+      <p class="concept">背景與前景物件全面去扁平化 ── Z 軸深邃距離拉開至 22.5 個長度單位</p>
+    </div>
+  </div>
+
+  <!-- Three.js Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    scene.background = null; 
+
+    // Setup Perspective Camera
+    const camera = new THREE.PerspectiveCamera(26, container.clientWidth / container.clientHeight, 0.1, 120);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap; 
+    container.appendChild(renderer.domElement);
+
+    // Group for the entire dynamic art composition
+    const artGroup = new THREE.Group();
+    scene.add(artGroup);
+
+    // Bauhaus Palette matching the new Constructivist painting
+    const colors = {
+      red: 0xe74c3c,
+      blue: 0x1b4f72,       // Navy
+      lightBlue: 0x85c1e9,  // Sky Blue
+      blueGrey: 0x9caebd,   // Muted blue-grey
+      orange: 0xe67e22,     // Orange
+      peach: 0xf5cba7,      // Pale Orange/Peach
+      pink: 0xf1948a,       // Muted Pink
+      ink: 0x111111,        // Black
+      grey: 0xbdc3c7,       // Muted Grey
+      white: 0xffffff
+    };
+
+    // Lights
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+    scene.add(ambientLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.95);
+    dirLight.position.set(10, 18, 15);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 2048;
+    dirLight.shadow.mapSize.height = 2048;
+    dirLight.shadow.camera.near = 0.5;
+    dirLight.shadow.camera.far = 35;
+    dirLight.shadow.camera.left = -8.0;
+    dirLight.shadow.camera.right = 8.0;
+    dirLight.shadow.camera.top = 8.0;
+    dirLight.shadow.camera.bottom = -8.0;
+    dirLight.shadow.bias = -0.0003;
+    scene.add(dirLight);
+
+    // Helper to create solid meshes with outline borders
+    function createVolumetricMesh(geometry, faceColor) {
+      const material = new THREE.MeshPhongMaterial({
+        color: faceColor,
+        flatShading: false,
+        shininess: 0,        // Matte effect
+        specular: 0x000000
+      });
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+
+      // Add clean outline borders
+      const edges = new THREE.EdgesGeometry(geometry, 25);
+      const lineMaterial = new THREE.LineBasicMaterial({
+        color: colors.ink,
+        linewidth: 2
+      });
+      const outline = new THREE.LineSegments(edges, lineMaterial);
+      mesh.add(outline);
+
+      return mesh;
+    }
+
+    // --- 1. STATIC BACKGROUND RELIEF (去扁平化：背景版全部做成極具厚度的長方體) ---
+    const bgGroup = new THREE.Group();
+    artGroup.add(bgGroup);
+
+    // Far Left Light Blue vertical stripe (Thickness = 4.0)
+    const leftStripeGeo = new THREE.BoxGeometry(1.0, 10.0, 4.0);
+    const leftStripe = createVolumetricMesh(leftStripeGeo, colors.lightBlue);
+    leftStripe.position.set(-4.5, 0.0, -18.0); // Z = -18.0 (Deep background)
+    bgGroup.add(leftStripe);
+
+    // Top Peach Background Panel (Thickness = 4.0)
+    const topPeachGeo = new THREE.BoxGeometry(4.0, 2.8, 4.0);
+    const topPeach = createVolumetricMesh(topPeachGeo, colors.peach);
+    topPeach.position.set(0.2, 2.2, -16.0); // Z = -16.0
+    bgGroup.add(topPeach);
+
+    // Bottom Pink Background Panel (Thickness = 3.5)
+    const botPinkGeo = new THREE.BoxGeometry(1.0, 3.2, 3.5);
+    const botPink = createVolumetricMesh(botPinkGeo, colors.pink);
+    botPink.position.set(-0.9, -2.4, -15.0); // Z = -15.0
+    bgGroup.add(botPink);
+
+    // Bottom Right Peach Panel (Thickness = 3.5)
+    const botPeachGeo = new THREE.BoxGeometry(2.0, 2.2, 3.5);
+    const botPeach = createVolumetricMesh(botPeachGeo, colors.peach);
+    botPeach.position.set(1.8, -2.2, -15.5); // Z = -15.5
+    bgGroup.add(botPeach);
+
+    // Central Blue-Grey Vertical panel (Thickness = 5.0)
+    const centerBlueGeo = new THREE.BoxGeometry(1.6, 8.5, 5.0);
+    const centerBlue = createVolumetricMesh(centerBlueGeo, colors.blueGrey);
+    centerBlue.position.set(0.3, 0.0, -13.0); // Z = -13.0
+    bgGroup.add(centerBlue);
+
+
+    // --- 2. DYNAMIC SCULPTURE ELEMENTS (Z 軸深度距離大幅拉開) ---
+
+    // Black L-shape vertical component (Thicker)
+    const lVertGeo = new THREE.BoxGeometry(1.0, 4.2, 1.0);
+    const lVert = createVolumetricMesh(lVertGeo, colors.ink);
+    artGroup.add(lVert);
+
+    // Black L-shape horizontal component (Thicker)
+    const lHorizGeo = new THREE.BoxGeometry(3.6, 1.0, 1.0);
+    const lHoriz = createVolumetricMesh(lHorizGeo, colors.ink);
+    artGroup.add(lHoriz);
+
+    // Left Grey Semi-Cylinder (Thicker)
+    const semiCylGeo = new THREE.CylinderGeometry(1.2, 1.2, 1.6, 32, 1, false, -Math.PI/2, Math.PI);
+    const semiCyl = createVolumetricMesh(semiCylGeo, colors.grey);
+    semiCyl.rotation.x = Math.PI / 2;
+    artGroup.add(semiCyl);
+
+    // Navy Blue Cube (Deep background volumetric cube)
+    const blueCubeGeo = new THREE.BoxGeometry(3.0, 3.0, 3.0);
+    const blueCube = createVolumetricMesh(blueCubeGeo, colors.blue);
+    artGroup.add(blueCube);
+
+    // Central Black Square Box (cube)
+    const centerBoxGeo = new THREE.BoxGeometry(2.2, 2.2, 2.2);
+    const centerBox = createVolumetricMesh(centerBoxGeo, colors.ink);
+    artGroup.add(centerBox);
+
+    // Top Light Blue Sphere (Larger)
+    const topBlueSphereGeo = new THREE.SphereGeometry(1.2, 32, 32);
+    const topBlueSphere = createVolumetricMesh(topBlueSphereGeo, colors.blueGrey);
+    artGroup.add(topBlueSphere);
+
+    // Top Peach Sphere (Larger)
+    const topPeachSphereGeo = new THREE.SphereGeometry(0.8, 32, 32);
+    const topPeachSphere = createVolumetricMesh(topPeachSphereGeo, colors.peach);
+    artGroup.add(topPeachSphere);
+
+    // Top Red Sphere (Larger)
+    const topRedSphereGeo = new THREE.SphereGeometry(0.75, 32, 32);
+    const topRedSphere = createVolumetricMesh(topRedSphereGeo, colors.red);
+    artGroup.add(topRedSphere);
+
+    // Middle Orange Sphere (Larger)
+    const midOrangeSphereGeo = new THREE.SphereGeometry(0.65, 32, 32);
+    const midOrangeSphere = createVolumetricMesh(midOrangeSphereGeo, colors.orange);
+    artGroup.add(midOrangeSphere);
+
+    // Middle Black Sphere (Larger)
+    const midBlackSphereGeo = new THREE.SphereGeometry(0.55, 32, 32);
+    const midBlackSphere = createVolumetricMesh(midBlackSphereGeo, colors.ink);
+    artGroup.add(midBlackSphere);
+
+    // Large Red Sphere (Lower-Right focal point, closest to camera in Z)
+    const largeRedSphereGeo = new THREE.SphereGeometry(1.8, 32, 32);
+    const largeRedSphere = createVolumetricMesh(largeRedSphereGeo, colors.red);
+    artGroup.add(largeRedSphere);
+
+    // Orange Arc / Half-Torus (Chunky thickness = 0.7)
+    const orangeArcGeo = new THREE.TorusGeometry(1.8, 0.7, 16, 64, Math.PI);
+    const orangeArc = createVolumetricMesh(orangeArcGeo, colors.orange);
+    orangeArc.rotation.z = Math.PI; 
+    artGroup.add(orangeArc);
+
+    // Right Black Sphere (Top-Right)
+    const rightBlackSphereGeo = new THREE.SphereGeometry(0.85, 32, 32);
+    const rightBlackSphere = createVolumetricMesh(rightBlackSphereGeo, colors.ink);
+    artGroup.add(rightBlackSphere);
+
+    // Bottom Red Sphere
+    const botRedSphereGeo = new THREE.SphereGeometry(0.65, 32, 32);
+    const botRedSphere = createVolumetricMesh(botRedSphereGeo, colors.red);
+    artGroup.add(botRedSphere);
+
+    // Bottom-Right Grey-Blue Sphere
+    const botGreySphereGeo = new THREE.SphereGeometry(0.5, 32, 32);
+    const botGreySphere = createVolumetricMesh(botGreySphereGeo, colors.blueGrey);
+    artGroup.add(botGreySphere);
+
+    // Bottom-Left Small Grey-Blue Sphere
+    const botLeftSphereGeo = new THREE.SphereGeometry(0.45, 32, 32);
+    const botLeftSphere = createVolumetricMesh(botLeftSphereGeo, colors.blueGrey);
+    artGroup.add(botLeftSphere);
+
+    // --- 3. STRUCTURAL RODS (去扁平化：改為具厚度的實體方柱/方條) ---
+
+    // Left Long Vertical Black Pillar (Thick cuboid)
+    const leftVertRodGeo = new THREE.BoxGeometry(0.4, 10.0, 0.4);
+    const leftVertRod = createVolumetricMesh(leftVertRodGeo, colors.ink);
+    artGroup.add(leftVertRod);
+
+    // Right Long Vertical Black Pillar (Thick cuboid)
+    const rightVertRodGeo = new THREE.BoxGeometry(0.4, 7.5, 0.4);
+    const rightVertRod = createVolumetricMesh(rightVertRodGeo, colors.ink);
+    artGroup.add(rightVertRod);
+
+    // Fretboard/Horizontal Rod Array (Thick cuboids)
+    const fretRodGeo = new THREE.BoxGeometry(3.2, 0.3, 0.3);
+    const fretRod1 = createVolumetricMesh(fretRodGeo, colors.ink);
+    fretRod1.rotation.z = Math.PI / 2;
+    artGroup.add(fretRod1);
+
+    const fretRod2 = createVolumetricMesh(fretRodGeo, colors.ink);
+    fretRod2.rotation.z = Math.PI / 2;
+    artGroup.add(fretRod2);
+
+    const fretRod3 = createVolumetricMesh(fretRodGeo, colors.ink);
+    fretRod3.rotation.z = Math.PI / 2;
+    artGroup.add(fretRod3);
+
+    // Fretboard White Bar (Thick block)
+    const fretWhiteBarGeo = new THREE.BoxGeometry(3.2, 0.6, 0.6);
+    const fretWhiteBar = createVolumetricMesh(fretWhiteBarGeo, colors.white);
+    artGroup.add(fretWhiteBar);
+
+    // Bottom Horizontal Black Rod (Thick cuboid)
+    const botHorizRodGeo = new THREE.BoxGeometry(4.2, 0.3, 0.3);
+    const botHorizRod = createVolumetricMesh(botHorizRodGeo, colors.ink);
+    botHorizRod.rotation.z = Math.PI / 2;
+    artGroup.add(botHorizRod);
+
+    // Right Horizontal Black Rod (Thick cuboid)
+    const rightHorizRodGeo = new THREE.BoxGeometry(3.0, 0.3, 0.3);
+    const rightHorizRod = createVolumetricMesh(rightHorizRodGeo, colors.ink);
+    rightHorizRod.rotation.z = Math.PI / 2;
+    artGroup.add(rightHorizRod);
+
+    // Top-Right Hatch Rods (5 chunky horizontal blocks)
+    const hatchGroup = new THREE.Group();
+    artGroup.add(hatchGroup);
+    const hatchGeo = new THREE.BoxGeometry(0.6, 0.2, 0.2);
+    const hatches = [];
+    for(let i=0; i<5; i++) {
+      const hatch = createVolumetricMesh(hatchGeo, colors.ink);
+      hatch.rotation.z = Math.PI / 2;
+      hatchGroup.add(hatch);
+      hatches.push(hatch);
+    }
+
+    // Shadow Floor Receiver Plane
+    const shadowFloorGeo = new THREE.PlaneGeometry(40, 40);
+    const shadowFloorMat = new THREE.ShadowMaterial({ opacity: 0.12 });
+    const shadowFloor = new THREE.Mesh(shadowFloorGeo, shadowFloorMat);
+    shadowFloor.rotation.x = -Math.PI / 2;
+    shadowFloor.position.y = -5.5;
+    shadowFloor.receiveShadow = true;
+    scene.add(shadowFloor);
+
+
+    // --- PHYSICS OBJECTS DATA STRUCTURE ---
+    // Background panels are excluded from physics (remain static).
+    // Foreground objects are spread widely along the Z axis (Z gaps: Z = -4.5 to Z = 3.5).
+    const physicsObjects = [
+      {
+        mesh: lVert, radius: 3.2, mass: 3.0,
+        defaultPos: new THREE.Vector3(-2.2, -1.0, 4.0), // Z = 4.0
+        defaultRot: new THREE.Euler(0, 0, 0),
+        pos: new THREE.Vector3(), vel: new THREE.Vector3(), rotVel: new THREE.Vector3()
+      },
+      {
+        mesh: lHoriz, radius: 3.0, mass: 2.5,
+        defaultPos: new THREE.Vector3(-0.8, -2.0, 4.2), // Z = 4.2
+        defaultRot: new THREE.Euler(0, 0, 0),
+        pos: new THREE.Vector3(), vel: new THREE.Vector3(), rotVel: new THREE.Vector3()
+      },
+      {
+        mesh: semiCyl, radius: 2.2, mass: 2.0,
+        defaultPos: new THREE.Vector3(-2.2, 0.0, -3.5), // Z = -3.5 (deep gap)
+        defaultRot: new THREE.Euler(Math.PI / 2, 0, 0),
+        pos: new THREE.Vector3(), vel: new THREE.Vector3(), rotVel: new THREE.Vector3()
+      },
+      {
+        mesh: blueCube, radius: 3.4, mass: 6.0,
+        defaultPos: new THREE.Vector3(-0.6, 0.6, -8.0), // Z = -8.0 (very deep)
+        defaultRot: new THREE.Euler(0, 0, -0.42),
+        pos: new THREE.Vector3(), vel: new THREE.Vector3(), rotVel: new THREE.Vector3()
+      },
+      {
+        mesh: centerBox, radius: 2.8, mass: 5.0,
+        defaultPos: new THREE.Vector3(0.4, 1.8, -5.0), // Z = -5.0
+        defaultRot: new THREE.Euler(0, 0, 0),
+        pos: new THREE.Vector3(), vel: new THREE.Vector3(), rotVel: new THREE.Vector3()
+      },
+      {
+        mesh: topBlueSphere, radius: 2.0, mass: 2.5,
+        defaultPos: new THREE.Vector3(0.9, 3.2, -1.5), // Z = -1.5
+        defaultRot: new THREE.Euler(0, 0, 0),
+        pos: new THREE.Vector3(), vel: new THREE.Vector3(), rotVel: new THREE.Vector3()
+      },
+      {
+        mesh: topPeachSphere, radius: 1.5, mass: 1.2,
+        defaultPos: new THREE.Vector3(-0.1, 2.4, 1.5), // Z = 1.5
+        defaultRot: new THREE.Euler(0, 0, 0),
+        pos: new THREE.Vector3(), vel: new THREE.Vector3(), rotVel: new THREE.Vector3()
+      },
+      {
+        mesh: topRedSphere, radius: 1.4, mass: 1.5,
+        defaultPos: new THREE.Vector3(0.8, 2.2, 2.5), // Z = 2.5
+        defaultRot: new THREE.Euler(0, 0, 0),
+        pos: new THREE.Vector3(), vel: new THREE.Vector3(), rotVel: new THREE.Vector3()
+      },
+      {
+        mesh: midOrangeSphere, radius: 1.3, mass: 1.2,
+        defaultPos: new THREE.Vector3(-0.5, 1.4, 3.0), // Z = 3.0
+        defaultRot: new THREE.Euler(0, 0, 0),
+        pos: new THREE.Vector3(), vel: new THREE.Vector3(), rotVel: new THREE.Vector3()
+      },
+      {
+        mesh: midBlackSphere, radius: 1.2, mass: 1.0,
+        defaultPos: new THREE.Vector3(-1.5, 1.8, 3.5), // Z = 3.5
+        defaultRot: new THREE.Euler(0, 0, 0),
+        pos: new THREE.Vector3(), vel: new THREE.Vector3(), rotVel: new THREE.Vector3()
+      },
+      {
+        mesh: largeRedSphere, radius: 2.7, mass: 4.5,
+        defaultPos: new THREE.Vector3(1.0, -1.0, 7.5), // Z = 7.5 (closest foreground)
+        defaultRot: new THREE.Euler(0, 0, 0),
+        pos: new THREE.Vector3(), vel: new THREE.Vector3(), rotVel: new THREE.Vector3()
+      },
+      {
+        mesh: orangeArc, radius: 3.2, mass: 3.0,
+        defaultPos: new THREE.Vector3(0.8, -1.5, 0.5), // Z = 0.5
+        defaultRot: new THREE.Euler(0, 0, Math.PI),
+        pos: new THREE.Vector3(), vel: new THREE.Vector3(), rotVel: new THREE.Vector3()
+      },
+      {
+        mesh: rightBlackSphere, radius: 1.6, mass: 1.8,
+        defaultPos: new THREE.Vector3(2.2, 1.8, 0.0), // Z = 0.0
+        defaultRot: new THREE.Euler(0, 0, 0),
+        pos: new THREE.Vector3(), vel: new THREE.Vector3(), rotVel: new THREE.Vector3()
+      },
+      {
+        mesh: botRedSphere, radius: 1.3, mass: 1.2,
+        defaultPos: new THREE.Vector3(1.9, -3.0, 4.5), // Z = 4.5
+        defaultRot: new THREE.Euler(0, 0, 0),
+        pos: new THREE.Vector3(), vel: new THREE.Vector3(), rotVel: new THREE.Vector3()
+      },
+      {
+        mesh: botGreySphere, radius: 1.1, mass: 0.9,
+        defaultPos: new THREE.Vector3(2.8, -2.4, -1.0), // Z = -1.0
+        defaultRot: new THREE.Euler(0, 0, 0),
+        pos: new THREE.Vector3(), vel: new THREE.Vector3(), rotVel: new THREE.Vector3()
+      },
+      {
+        mesh: botLeftSphere, radius: 1.0, mass: 0.7,
+        defaultPos: new THREE.Vector3(-1.8, -3.2, 1.0), // Z = 1.0
+        defaultRot: new THREE.Euler(0, 0, 0),
+        pos: new THREE.Vector3(), vel: new THREE.Vector3(), rotVel: new THREE.Vector3()
+      },
+      {
+        mesh: leftVertRod, radius: 2.2, mass: 1.5,
+        defaultPos: new THREE.Vector3(-2.8, 0.0, 5.0), // Z = 5.0
+        defaultRot: new THREE.Euler(0, 0, 0),
+        pos: new THREE.Vector3(), vel: new THREE.Vector3(), rotVel: new THREE.Vector3()
+      },
+      {
+        mesh: rightVertRod, radius: 2.2, mass: 1.5,
+        defaultPos: new THREE.Vector3(2.2, 2.0, 5.0), // Z = 5.0
+        defaultRot: new THREE.Euler(0, 0, 0),
+        pos: new THREE.Vector3(), vel: new THREE.Vector3(), rotVel: new THREE.Vector3()
+      },
+      {
+        mesh: fretRod1, radius: 1.5, mass: 0.6,
+        defaultPos: new THREE.Vector3(-1.2, -0.6, 6.0), // Z = 6.0
+        defaultRot: new THREE.Euler(0, 0, Math.PI / 2),
+        pos: new THREE.Vector3(), vel: new THREE.Vector3(), rotVel: new THREE.Vector3()
+      },
+      {
+        mesh: fretRod2, radius: 1.5, mass: 0.6,
+        defaultPos: new THREE.Vector3(-1.2, -1.0, 6.0), // Z = 6.0
+        defaultRot: new THREE.Euler(0, 0, Math.PI / 2),
+        pos: new THREE.Vector3(), vel: new THREE.Vector3(), rotVel: new THREE.Vector3()
+      },
+      {
+        mesh: fretRod3, radius: 1.5, mass: 0.6,
+        defaultPos: new THREE.Vector3(-1.2, -1.4, 6.0), // Z = 6.0
+        defaultRot: new THREE.Euler(0, 0, Math.PI / 2),
+        pos: new THREE.Vector3(), vel: new THREE.Vector3(), rotVel: new THREE.Vector3()
+      },
+      {
+        mesh: fretWhiteBar, radius: 1.8, mass: 0.8,
+        defaultPos: new THREE.Vector3(-1.2, -1.8, 6.5), // Z = 6.5
+        defaultRot: new THREE.Euler(0, 0, 0),
+        pos: new THREE.Vector3(), vel: new THREE.Vector3(), rotVel: new THREE.Vector3()
+      },
+      {
+        mesh: botHorizRod, radius: 1.8, mass: 1.0,
+        defaultPos: new THREE.Vector3(1.6, -3.2, 5.5), // Z = 5.5
+        defaultRot: new THREE.Euler(0, 0, Math.PI / 2),
+        pos: new THREE.Vector3(), vel: new THREE.Vector3(), rotVel: new THREE.Vector3()
+      },
+      {
+        mesh: rightHorizRod, radius: 1.7, mass: 0.9,
+        defaultPos: new THREE.Vector3(2.2, 1.0, 5.5), // Z = 5.5
+        defaultRot: new THREE.Euler(0, 0, Math.PI / 2),
+        pos: new THREE.Vector3(), vel: new THREE.Vector3(), rotVel: new THREE.Vector3()
+      }
+    ];
+
+    // Initialize all meshes to their default positions
+    physicsObjects.forEach(obj => {
+      obj.pos.copy(obj.defaultPos);
+      obj.mesh.position.copy(obj.pos);
+      obj.mesh.rotation.copy(obj.defaultRot);
+    });
+
+    // --- SEAMLESS 360 ORBIT CAMERA ---
+    const cameraState = {
+      radius: 21.0,
+      theta: 0,
+      phi: Math.PI / 2.0,
+      targetTheta: 0,
+      targetPhi: Math.PI / 2.0,
+      lookAt: new THREE.Vector3(0, 0, 0),
+      targetLookAt: new THREE.Vector3(0, 0, 0)
+    };
+
+    let isDragging = false;
+    let previousMousePosition = { x: 0, y: 0 };
+    let lastActiveTime = performance.now();
+    const idleTimeout = 3200; // 3.2s static load
+
+    let activeFactor = 0;
+    let physicsTriggered = false;
+
+    // --- CAMERA VIEWPOINTS SNAPPING ---
+    window.snapToView = function(tTheta, tPhi) {
+      const base = Math.floor(cameraState.theta / (Math.PI * 2)) * (Math.PI * 2);
+      let candidate1 = base + tTheta;
+      let candidate2 = base + tTheta + Math.PI * 2;
+      let candidate3 = base + tTheta - Math.PI * 2;
+      
+      let diff1 = Math.abs(candidate1 - cameraState.theta);
+      let diff2 = Math.abs(candidate2 - cameraState.theta);
+      let diff3 = Math.abs(candidate3 - cameraState.theta);
+      
+      if (diff1 <= diff2 && diff1 <= diff3) cameraState.targetTheta = candidate1;
+      else if (diff2 <= diff1 && diff2 <= diff3) cameraState.targetTheta = candidate2;
+      else cameraState.targetTheta = candidate3;
+
+      cameraState.targetPhi = tPhi;
+      lastActiveTime = performance.now(); 
+    };
+
+    // --- MOUSE 3D FORCE FIELD ---
+    const raycaster = new THREE.Raycaster();
+    const mouse2D = new THREE.Vector2();
+    const planeZ = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+    const mouse3D = new THREE.Vector3(9999, 9999, 9999);
+
+    function updateMouse3D(clientX, clientY) {
+      mouse2D.x = (clientX / window.innerWidth) * 2 - 1;
+      mouse2D.y = -(clientY / window.innerHeight) * 2 + 1;
+      
+      raycaster.setFromCamera(mouse2D, camera);
+      raycaster.ray.intersectPlane(planeZ, mouse3D);
+    }
+
+    container.addEventListener('mousemove', (e) => {
+      const now = performance.now();
+      lastActiveTime = now;
+      updateMouse3D(e.clientX, e.clientY);
+
+      if (isDragging) {
+        const deltaX = e.clientX - previousMousePosition.x;
+        const deltaY = e.clientY - previousMousePosition.y;
+
+        cameraState.targetTheta -= deltaX * 0.0045;
+        cameraState.targetPhi = Math.max(0.2, Math.min(Math.PI - 0.2, cameraState.targetPhi - deltaY * 0.0045));
+
+        cameraState.theta = cameraState.targetTheta;
+        cameraState.phi = cameraState.targetPhi;
+        previousMousePosition = { x: e.clientX, y: e.clientY };
+      } else {
+        cameraState.targetLookAt.set(mouse2D.x * 0.7, mouse2D.y * 0.7, 0);
+      }
+    });
+
+    container.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      previousMousePosition = { x: e.clientX, y: e.clientY };
+      lastActiveTime = performance.now();
+    });
+
+    window.addEventListener('mouseup', () => {
+      isDragging = false;
+    });
+
+    // Touch support for mobile
+    container.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 1) {
+        const now = performance.now();
+        lastActiveTime = now;
+        updateMouse3D(e.touches[0].clientX, e.touches[0].clientY);
+
+        if (isDragging) {
+          const deltaX = e.touches[0].clientX - previousMousePosition.x;
+          const deltaY = e.touches[0].clientY - previousMousePosition.y;
+
+          cameraState.targetTheta -= deltaX * 0.005;
+          cameraState.targetPhi = Math.max(0.2, Math.min(Math.PI - 0.2, cameraState.targetPhi - deltaY * 0.005));
+
+          cameraState.theta = cameraState.targetTheta;
+          cameraState.phi = cameraState.targetPhi;
+          previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        }
+      }
+    });
+
+    container.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        isDragging = true;
+        previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        updateMouse3D(e.touches[0].clientX, e.touches[0].clientY);
+        lastActiveTime = performance.now();
+      }
+    });
+
+    window.addEventListener('touchend', () => {
+      isDragging = false;
+      mouse3D.set(9999, 9999, 9999);
+    });
+
+    window.addEventListener('resize', () => {
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+
+    // Animation Loop
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const delta = Math.min(clock.getDelta(), 0.035);
+      const elapsed = clock.getElapsedTime();
+      const now = performance.now();
+
+      // Camera Orbiting Auto Trigger
+      if (!isDragging && (now - lastActiveTime > idleTimeout)) {
+        activeFactor += (1.0 - activeFactor) * 0.02; // Smooth fade-in of movements
+        cameraState.targetTheta += 0.05 * delta; // Slower camera orbit
+        
+        const targetPhi = Math.PI / 2.2 + Math.sin(elapsed * 0.16) * 0.18;
+        cameraState.targetPhi += (targetPhi - cameraState.targetPhi) * 0.035;
+        
+        mouse3D.set(9999, 9999, 9999); 
+      } else if (isDragging) {
+        activeFactor += (1.0 - activeFactor) * 0.08;
+      }
+
+      // Smoothly lerp camera angle targets (when not dragging)
+      if (!isDragging) {
+        cameraState.theta += (cameraState.targetTheta - cameraState.theta) * 0.08;
+        cameraState.phi += (cameraState.targetPhi - cameraState.phi) * 0.08;
+      }
+
+      // Smooth look-at parallax
+      cameraState.lookAt.lerp(cameraState.targetLookAt, 0.05);
+
+      // Camera positioning
+      camera.position.x = cameraState.radius * Math.sin(cameraState.phi) * Math.sin(cameraState.theta);
+      camera.position.z = cameraState.radius * Math.sin(cameraState.phi) * Math.cos(cameraState.theta);
+      camera.position.y = cameraState.radius * Math.cos(cameraState.phi);
+      camera.lookAt(cameraState.lookAt);
+
+      // --- STATIC ALIGNMENT (物件固定不進行動態漂移與碰撞，保持精美構圖) ---
+      physicsObjects.forEach(obj => {
+        obj.pos.copy(obj.defaultPos);
+        obj.mesh.position.copy(obj.pos);
+        obj.mesh.rotation.copy(obj.defaultRot);
+      });
+
+      // --- 4. TIE ACCESSORY ELEMENTS & BREATHING SCALE EFFECTS ---
+      
+      // Keep hatches attached relatively to rightVertRod (it is element 17 in physicsObjects)
+      const rRod = physicsObjects[17];
+      const rRodPos = rRod.pos;
+      const rRodRot = rRod.mesh.rotation;
+      
+      hatches.forEach((hatch, i) => {
+        const localY = 1.6 - 0.2 * i;
+        const offset = new THREE.Vector3(0, localY, 0.35).applyEuler(rRodRot);
+        hatch.position.copy(rRodPos).add(offset);
+        hatch.rotation.copy(rRodRot);
+        hatch.rotation.z += Math.PI / 2; 
+      });
+
+      // Subtle breathing scale effects disabled to keep objects completely static
+      largeRedSphere.scale.setScalar(1.0);
+      orangeArc.scale.y = 1.0;
+      topBlueSphere.scale.setScalar(1.0);
+      lVert.scale.y = 1.0;
+      
+      renderer.render(scene, camera);
+    }
+
+    // --- INTERACTIVE TAGS & CARDS LOGIC ---
+    function switchPage(src, title) {
+      // 1. Try direct parent call (same-origin)
+      try {
+        if (window.parent && typeof window.parent.handleIframeRedirect === 'function') {
+          window.parent.handleIframeRedirect(src, title);
+          return;
+        }
+      } catch (e) {
+        console.warn("Direct parent call failed, trying postMessage fallback:", e);
+      }
+
+      // 2. Try postMessage (cross-origin / file:// safe)
+      try {
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ type: 'iframeRedirect', src: src, title: title }, '*');
+          return;
+        }
+      } catch (e) {
+        console.warn("postMessage fallback failed:", e);
+      }
+
+      // 3. Ultimate fallback (local location change in iframe)
+      window.location.href = src;
+    }
+
+    const cardA = document.getElementById('painting-card-a');
+    const cardB = document.getElementById('painting-card-b');
+
+    window.toggleCard = function(cardType, forceState) {
+      if (cardType === 'a') {
+        const show = forceState !== undefined ? forceState : (cardA.style.display !== 'flex');
+        if (show) {
+          cardA.style.display = 'flex';
+          cardB.style.display = 'none';
+        } else {
+          cardA.style.display = 'none';
+        }
+      } else if (cardType === 'b') {
+        const show = forceState !== undefined ? forceState : (cardB.style.display !== 'flex');
+        if (show) {
+          cardB.style.display = 'flex';
+          cardA.style.display = 'none';
+        } else {
+          cardB.style.display = 'none';
+        }
+      }
+    };
+
+    document.querySelector('.tag-red').addEventListener('click', () => {
+      switchPage('bauhaus_animation - A.html', '首頁動畫 A (靜態)');
+    });
+
+    document.querySelector('.tag-blue').addEventListener('click', () => {
+      switchPage('bauhaus_animation - B.html', '首頁動畫 B (動態)');
+    });
+
+    document.querySelector('.tag-yellow').addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleCard('a');
+    });
+
+    document.querySelector('.tag-orange-diamond').addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleCard('b');
+    });
+
+    animate();
+  </script>
+</body>
+</html>

@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GLB / IFC Viewer - HTTP Server Version</title>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://esm.sh/three@0.161.0",
+      "three/addons/": "https://esm.sh/three@0.161.0/examples/jsm/",
+      "web-ifc": "https://esm.sh/web-ifc@0.0.51"
+    }
+  }
+  </script>
+  <style>
+    *{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:#080c10;color:#dde4f0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}#app{position:fixed;inset:0}canvas{display:block;width:100%;height:100%}#topbar{position:fixed;top:0;left:0;right:0;height:48px;z-index:20;display:flex;align-items:center;gap:12px;padding:0 18px;background:rgba(8,12,16,.86);border-bottom:1px solid rgba(255,255,255,.1);backdrop-filter:blur(14px)}#title{font-size:14px;font-weight:700;letter-spacing:.03em}#status{margin-left:auto;max-width:520px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;color:rgba(221,228,240,.58)}#status.ok{color:#00d2b4}#status.err{color:#ff6b6b}#panel{position:fixed;top:48px;left:0;bottom:0;width:310px;z-index:10;background:rgba(10,14,20,.82);border-right:1px solid rgba(255,255,255,.1);backdrop-filter:blur(14px);display:flex;flex-direction:column}.sec{padding:14px 16px 8px;font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:rgba(221,228,240,.5);border-bottom:1px solid rgba(255,255,255,.08)}#drop{position:relative;margin:14px;border:1px dashed rgba(79,140,255,.55);border-radius:12px;padding:22px 12px;text-align:center;background:rgba(79,140,255,.06);cursor:pointer}#drop.drag{background:rgba(79,140,255,.14);border-color:#4f8cff}#drop input{position:absolute;inset:0;opacity:0;cursor:pointer}.big{font-size:13px;line-height:1.8;color:rgba(221,228,240,.72)}.big b{color:#4f8cff}.hint{font-size:11px;line-height:1.65;color:rgba(221,228,240,.48);padding:0 14px 12px}.hint code{color:#00d2b4}.info{margin:0 14px;border:1px solid rgba(255,255,255,.08);border-radius:10px;overflow:hidden;background:rgba(255,255,255,.035)}.row{display:flex;justify-content:space-between;gap:10px;padding:8px 11px;border-bottom:1px solid rgba(255,255,255,.07);font-size:12px}.row:last-child{border-bottom:0}.key{color:rgba(221,228,240,.46)}.val{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.buttons{padding:12px 14px;display:grid;gap:8px}.btn{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);color:#dde4f0;border-radius:9px;padding:10px 12px;cursor:pointer;text-align:left;font-size:12px}.btn:hover{background:rgba(255,255,255,.1)}.btn.active{border-color:rgba(79,140,255,.55);color:#4f8cff;background:rgba(79,140,255,.14)}#loader{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;z-index:50;background:rgba(8,12,16,.9)}#loader.show{display:flex}.spinner{width:34px;height:34px;border-radius:50%;border:2px solid rgba(79,140,255,.22);border-top-color:#4f8cff;animation:spin .75s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}#timeline{position:fixed;left:310px;right:0;bottom:0;z-index:20;height:58px;display:none;align-items:center;gap:12px;padding:0 18px;background:rgba(8,12,16,.88);border-top:1px solid rgba(255,255,255,.1)}#timeline.show{display:flex}#play{width:34px;height:34px;border-radius:50%;border:1px solid rgba(79,140,255,.45);background:rgba(79,140,255,.16);color:#4f8cff;cursor:pointer}#scrub{flex:1;accent-color:#4f8cff}.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;color:rgba(221,228,240,.62)}#corner{position:fixed;right:14px;bottom:10px;color:rgba(255,255,255,.22);font-size:10px;font-family:ui-monospace,Menlo,Consolas,monospace}@media(max-width:700px){#panel{width:100%;height:44vh;top:auto;right:0;overflow:auto}#timeline{left:0;bottom:44vh}#status{max-width:150px}}
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <div id="topbar"><div id="title">GLB / GLTF / IFC Viewer</div><div id="status">請用 http://127.0.0.1:8000 開啟，再拖放模型</div></div>
+  <div id="panel">
+    <div class="sec">載入模型</div>
+    <div id="drop"><input id="file" type="file" accept=".glb,.gltf,.ifc,model/gltf-binary" /><div class="big">拖放 <b>GLB / GLTF / IFC</b><br>或點擊選擇檔案</div></div>
+    <div class="hint">建議啟動方式：<br><code>python -m http.server 8000</code><br>瀏覽器開：<br><code>http://127.0.0.1:8000/GLB_IFC_http_server_viewer.html</code></div>
+    <div class="sec">模型資訊</div>
+    <div class="info">
+      <div class="row"><span class="key">檔名</span><span class="val" id="i-name">—</span></div>
+      <div class="row"><span class="key">格式</span><span class="val" id="i-type">—</span></div>
+      <div class="row"><span class="key">Mesh</span><span class="val" id="i-mesh">—</span></div>
+      <div class="row"><span class="key">頂點</span><span class="val" id="i-vert">—</span></div>
+      <div class="row"><span class="key">動畫</span><span class="val" id="i-anim">—</span></div>
+      <div class="row"><span class="key">尺寸</span><span class="val" id="i-size">—</span></div>
+    </div>
+    <div class="sec">視圖控制</div>
+    <div class="buttons">
+      <button class="btn" id="fit">自動對焦</button>
+      <button class="btn" id="reset">重置相機</button>
+      <button class="btn" id="bg">切換背景</button>
+      <button class="btn" id="wire">線框模式</button>
+    </div>
+    <div class="hint" style="margin-top:auto;border-top:1px solid rgba(255,255,255,.08);padding-top:12px">操作：左鍵旋轉 / 右鍵平移 / 滾輪縮放<br>IFC 解析較慢，大檔案請等一下。</div>
+  </div>
+  <div id="loader"><div class="spinner"></div><div id="loaderText">解析中…</div></div>
+  <div id="timeline"><button id="play">⏸</button><span class="mono" id="time">0.00 / 0.00s</span><input id="scrub" type="range" min="0" max="1000" value="0"><span class="mono" id="clip">—</span></div>
+  <div id="corner">Three.js r161 · web-ifc-three · HTTP server version</div>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { IFCLoader } from 'https://esm.sh/web-ifc-three@0.0.126/IFCLoader?deps=three@0.161.0,web-ifc@0.0.51';
+
+const app=document.getElementById('app'), statusEl=document.getElementById('status'), drop=document.getElementById('drop'), fileInput=document.getElementById('file');
+const loaderEl=document.getElementById('loader'), loaderText=document.getElementById('loaderText');
+const iName=document.getElementById('i-name'), iType=document.getElementById('i-type'), iMesh=document.getElementById('i-mesh'), iVert=document.getElementById('i-vert'), iAnim=document.getElementById('i-anim'), iSize=document.getElementById('i-size');
+const tl=document.getElementById('timeline'), playBtn=document.getElementById('play'), scrub=document.getElementById('scrub'), timeEl=document.getElementById('time'), clipEl=document.getElementById('clip');
+function setStatus(t,c=''){statusEl.textContent=t;statusEl.className=c} function show(t){loaderText.textContent=t;loaderEl.classList.add('show')} function hide(){loaderEl.classList.remove('show')}
+const renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.setSize(innerWidth,innerHeight); renderer.outputColorSpace=THREE.SRGBColorSpace; renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.shadowMap.enabled=true; app.appendChild(renderer.domElement);
+const scene=new THREE.Scene(); let dark=true; scene.background=new THREE.Color(0x080c10);
+const camera=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,.01,10000); camera.position.set(4,3,5);
+const controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.target.set(0,.7,0);
+scene.add(new THREE.HemisphereLight(0xcfe1ff,0x1a1a2a,.55)); const sun=new THREE.DirectionalLight(0xffffff,2.6); sun.position.set(8,12,8); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); scene.add(sun); const fill=new THREE.DirectionalLight(0x8ab4f8,.6); fill.position.set(-8,5,-4); scene.add(fill);
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(500,500),new THREE.ShadowMaterial({opacity:.18})); ground.rotation.x=-Math.PI/2; ground.receiveShadow=true; scene.add(ground);
+new RGBELoader().load('https://threejs.org/examples/textures/equirectangular/venice_sunset_1k.hdr',hdr=>{const pmrem=new THREE.PMREMGenerator(renderer); scene.environment=pmrem.fromEquirectangular(hdr).texture; hdr.dispose(); pmrem.dispose();},undefined,()=>{});
+const gltfLoader=new GLTFLoader(); const draco=new DRACOLoader(); draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/libs/draco/gltf/'); gltfLoader.setDRACOLoader(draco); gltfLoader.setMeshoptDecoder(MeshoptDecoder);
+const ifcLoader=new IFCLoader(); ifcLoader.ifcManager.setWasmPath('https://unpkg.com/web-ifc@0.0.51/'); try{ifcLoader.ifcManager.applyWebIfcConfig({USE_FAST_BOOLS:true,COORDINATE_TO_ORIGIN:true});}catch(e){console.warn(e)}
+let model=null,mixer=null,actions=[],paused=false,wire=false,dragging=false,duration=0,active=0; const clock=new THREE.Clock(), box=new THREE.Box3(), center=new THREE.Vector3(), size=new THREE.Vector3();
+function clear(){ if(model){scene.remove(model); model.traverse(o=>{if(o.isMesh){o.geometry?.dispose(); [o.material].flat().forEach(m=>{if(!m)return; Object.values(m).forEach(v=>{if(v?.isTexture)v.dispose()}); m.dispose?.();})}})} model=null;mixer=null;actions=[];duration=0;tl.classList.remove('show'); iName.textContent=iType.textContent=iMesh.textContent=iVert.textContent=iAnim.textContent=iSize.textContent='—'; }
+function stats(obj){let mesh=0,vert=0; obj.traverse(o=>{ if(o.isMesh){mesh++; o.castShadow=true; o.receiveShadow=true; if(o.geometry?.attributes?.position) vert+=o.geometry.attributes.position.count; }}); return {mesh,vert};}
+function fit(obj){box.setFromObject(obj); if(box.isEmpty()||!isFinite(box.min.x)){setStatus('BoundingBox 無效','err');return} box.getCenter(center); box.getSize(size); const max=Math.max(size.x,size.y,size.z); obj.position.sub(center); box.setFromObject(obj); obj.position.y-=box.min.y; const z=Math.abs(max/2/Math.tan(camera.fov*Math.PI/360))*1.75; camera.position.set(0,max*.58,z); controls.target.set(0,max*.25,0); controls.update(); sun.position.set(max*.9,max*1.2,max*.9); fill.position.set(-max*.8,max*.55,-max*.5); iSize.textContent=`${size.x.toFixed(2)} × ${size.y.toFixed(2)} × ${size.z.toFixed(2)}`; }
+function buildAnim(gltf){actions=[];duration=0; if(!gltf.animations?.length){tl.classList.remove('show'); return} mixer=new THREE.AnimationMixer(gltf.scene); gltf.animations.forEach((clip,i)=>{const a=mixer.clipAction(clip); a.play(); actions.push(a); if(clip.duration>duration){duration=clip.duration;active=i}}); clipEl.textContent=gltf.animations[active]?.name||'clip_0'; tl.classList.add('show'); paused=false; playBtn.textContent='⏸';}
+function loadGLB(file){clear(); show('讀取 GLB / GLTF…'); setStatus('讀取中…'); const reader=new FileReader(); reader.onerror=()=>{hide();setStatus('FileReader 讀取失敗','err')}; reader.onload=()=>{gltfLoader.parse(reader.result,'',(gltf)=>{model=gltf.scene; const s=stats(model); if(s.mesh===0){hide();setStatus('模型內沒有 Mesh','err');return} scene.add(model); fit(model); buildAnim(gltf); iName.textContent=file.name; iType.textContent=file.name.split('.').pop().toUpperCase(); iMesh.textContent=s.mesh; iVert.textContent=s.vert.toLocaleString(); iAnim.textContent=(gltf.animations?.length||0); setStatus(`${file.name} 載入完成`,'ok'); hide();},err=>{console.error(err);hide();setStatus('GLB / GLTF 解析失敗：'+(err?.message||err),'err')})}; reader.readAsArrayBuffer(file);}
+function loadIFC(file){clear(); show('初始化 IFC / WASM…'); setStatus('IFC 解析中，請稍候…'); const url=URL.createObjectURL(file); ifcLoader.load(url,(ifc)=>{URL.revokeObjectURL(url); model=ifc; scene.add(model); const s=stats(model); fit(model); iName.textContent=file.name; iType.textContent='IFC'; iMesh.textContent=s.mesh; iVert.textContent=s.vert.toLocaleString(); iAnim.textContent='0'; setStatus(`${file.name} IFC 載入完成：${s.mesh} Mesh`,'ok'); hide();},xhr=>{ if(xhr.total){loaderText.textContent=`IFC 解析中… ${Math.round(xhr.loaded/xhr.total*100)}%`} else {loaderText.textContent='IFC 解析中…'}},err=>{URL.revokeObjectURL(url); console.error(err); hide(); setStatus('IFC 載入失敗：'+(err?.message||err),'err')});}
+function load(file){ if(!file)return; const ext=file.name.split('.').pop().toLowerCase(); wire=false; document.getElementById('wire').classList.remove('active'); if(ext==='glb'||ext==='gltf') loadGLB(file); else if(ext==='ifc') loadIFC(file); else setStatus('不支援格式：請選 .glb / .gltf / .ifc','err'); }
+fileInput.addEventListener('change',e=>load(e.target.files?.[0])); drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('drag')}); drop.addEventListener('dragleave',()=>drop.classList.remove('drag')); drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('drag');load(e.dataTransfer?.files?.[0])});
+document.getElementById('fit').onclick=()=>model&&fit(model); document.getElementById('reset').onclick=()=>{camera.position.set(4,3,5);controls.target.set(0,.7,0);controls.update()}; document.getElementById('bg').onclick=()=>{dark=!dark;scene.background=new THREE.Color(dark?0x080c10:0xdde4f0)}; document.getElementById('wire').onclick=function(){wire=!wire;this.classList.toggle('active',wire); if(model) model.traverse(o=>{if(o.isMesh)[o.material].flat().forEach(m=>{if(m)m.wireframe=wire})})};
+playBtn.onclick=()=>{paused=!paused; actions.forEach(a=>a.paused=paused); playBtn.textContent=paused?'▶':'⏸'}; scrub.addEventListener('mousedown',()=>{dragging=true;paused=true;actions.forEach(a=>a.paused=true);playBtn.textContent='▶'}); window.addEventListener('mouseup',()=>{if(dragging){dragging=false;paused=false;actions.forEach(a=>a.paused=false);playBtn.textContent='⏸'}}); scrub.addEventListener('input',()=>{if(!mixer||!duration)return; const t=scrub.value/1000*duration; actions.forEach(a=>a.time=t%(a.getClip().duration||1)); mixer.update(0); timeEl.textContent=`${t.toFixed(2)} / ${duration.toFixed(2)}s`;});
+function animate(){requestAnimationFrame(animate); controls.update(); const d=clock.getDelta(); if(mixer){mixer.update(d); if(!dragging&&duration&&actions[active]){const t=actions[active].time; scrub.value=t/duration*1000; timeEl.textContent=`${t.toFixed(2)} / ${duration.toFixed(2)}s`;}} renderer.render(scene,camera)} animate(); addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+</script>
+</body>
+</html>

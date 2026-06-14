@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Viewer: AIGC.YY_006E.glb</title>
+    <style>
+        :root {
+            --bg-dark: #111111;
+            --sidebar-bg: #1a1a1a;
+            --accent: #d896ff;
+            --text: #ffffff;
+            --text-muted: #888888;
+            --border: #333333;
+        }
+        body { margin: 0; background-color: var(--bg-dark); overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: var(--text); }
+        canvas { display: block; }
+        
+        #loader {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            color: white; font-size: 1.2rem; pointer-events: none;
+            background: rgba(0,0,0,0.8); padding: 30px; border-radius: 12px; z-index: 1000;
+            text-align: center; border: 1px solid var(--border);
+        }
+
+        /* Floating Control Panel */
+        #ui-container {
+            position: fixed; top: 20px; right: 20px;
+            width: 240px; background: rgba(26, 26, 26, 0.85);
+            border: 1px solid var(--border); border-radius: 12px;
+            display: flex; flex-direction: column;
+            z-index: 100; padding: 16px;
+            overflow-y: auto; max-height: calc(100vh - 40px);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            scrollbar-width: none; /* Firefox */
+        }
+        #ui-container::-webkit-scrollbar { display: none; /* Safari and Chrome */ }
+        
+        h1 { font-size: 16px; margin-top: 0; margin-bottom: 16px; font-weight: 600; }
+        
+        .section-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; display: block; }
+
+        /* HDRI Grid */
+        .hdri-grid { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+        .hdri-item { 
+            padding: 8px 10px; background: #222; border-radius: 6px; cursor: pointer;
+            border: 1px solid var(--border); transition: all 0.2s;
+            display: flex; flex-direction: column;
+        }
+        .hdri-item:hover { background: #2a2a2a; }
+        .hdri-item.active { border-color: var(--accent); background: rgba(216, 150, 255, 0.1); }
+        .hdri-name { font-size: 12px; font-weight: 500; }
+        .hdri-desc { font-size: 9px; color: var(--text-muted); margin-top: 2px; }
+
+        /* Rotation Dial */
+        .dial-container { 
+            display: flex; justify-content: center; align-items: center;
+            padding: 5px 0 10px 0; position: relative;
+            margin-bottom: 16px;
+        }
+        .dial-svg { width: 90px; height: 90px; cursor: crosshair; }
+        .dial-bg { fill: none; stroke: var(--border); stroke-width: 2; }
+        .dial-progress { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; }
+        .dial-handle { fill: var(--accent); }
+        .dial-center { 
+            position: absolute; width: 50px; height: 50px; 
+            background: #222; border-radius: 50%; 
+            display: flex; justify-content: center; align-items: center;
+            border: 1px solid var(--border);
+        }
+        .dial-icon { font-size: 16px; opacity: 0.8; }
+
+        /* Controls */
+        .control-group { margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px; }
+        .control-row { display: flex; flex-direction: column; gap: 4px; }
+        .control-row label { font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between; }
+        .control-row input[type=range] { accent-color: var(--accent); width: 100%; height: 4px; }
+        
+        .checkbox-row { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+        input[type=checkbox] { accent-color: var(--accent); }
+
+        /* Bottom Controls */
+        #bottom-controls {
+            position: fixed; bottom: 20px; left: 20px;
+            background: rgba(0,0,0,0.6); padding: 8px 16px; border-radius: 30px;
+            display: flex; align-items: center; gap: 12px; backdrop-filter: blur(10px);
+            border: 1px solid var(--border); z-index: 50;
+        }
+        #anim-slider { width: 180px; accent-color: var(--accent); height: 4px; }
+        .play-btn { background: none; border: none; color: white; cursor: pointer; font-size: 14px; padding: 0; }
+
+        .credit { position: fixed; bottom: 10px; right: 320px; font-size: 10px; color: #444; }
+
+        /* Mobile RWD */
+        #ui-toggle-btn {
+            display: none;
+            position: fixed; top: 20px; right: 20px;
+            background: rgba(26, 26, 26, 0.85);
+            border: 1px solid var(--border); border-radius: 12px;
+            color: var(--text); padding: 10px 16px;
+            z-index: 101; cursor: pointer;
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: background 0.2s;
+        }
+        #ui-toggle-btn:hover { background: rgba(40, 40, 40, 0.9); }
+
+        @media (max-width: 768px) {
+            #ui-toggle-btn {
+                display: block;
+            }
+            #ui-container {
+                transform: translateX(120%);
+                opacity: 0;
+                pointer-events: none;
+                transition: transform 0.3s ease, opacity 0.3s ease;
+                top: 70px; /* Below the button */
+                max-height: calc(100vh - 90px);
+            }
+            #ui-container.show {
+                transform: translateX(0);
+                opacity: 1;
+                pointer-events: auto;
+            }
+            .credit { right: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="loader">Loading glb/AIGC.YY_006E.glb...</div>
+    
+    <button id="ui-toggle-btn">⚙️ 設定</button>
+
+    <div id="ui-container">
+        <h1>環境 & 光源</h1>
+        
+        <span class="section-label">HDRI 佈景</span>
+        <div class="hdri-grid">
+            <div class="hdri-item active" id="hdri-0" onclick="changeHDRI(0)">
+                <span class="hdri-name">Docklands 02</span>
+                <span class="hdri-desc">Industrial harbor</span>
+            </div>
+            <div class="hdri-item" id="hdri-1" onclick="changeHDRI(1)">
+                <span class="hdri-name">Dikhololo Sunset</span>
+                <span class="hdri-desc">Warm sunset</span>
+            </div>
+            <div class="hdri-item" id="hdri-2" onclick="changeHDRI(2)">
+                <span class="hdri-name">Golden Gate Hills</span>
+                <span class="hdri-desc">Outdoor landscape</span>
+            </div>
+        </div>
+
+        <span class="section-label">光源旋轉</span>
+        <div class="dial-container">
+            <svg class="dial-svg" id="rotation-dial" viewBox="0 0 100 100">
+                <circle class="dial-bg" cx="50" cy="50" r="45" />
+                <path class="dial-progress" id="dial-path" d="" />
+                <circle class="dial-handle" id="dial-handle" cx="50" cy="5" r="4" />
+            </svg>
+            <div class="dial-center">
+                <span class="dial-icon">☀️</span>
+            </div>
+        </div>
+
+        <span class="section-label">環境設定</span>
+        <div class="control-group">
+            <div class="control-row">
+                <label>環境強度 <span id="val-env">1.0</span></label>
+                <input type="range" id="input-env" min="0" max="5" step="0.1" value="1">
+            </div>
+            <div class="control-row">
+                <label>曝光度 <span id="val-exposure">1.0</span></label>
+                <input type="range" id="input-exposure" min="0" max="3" step="0.1" value="1">
+            </div>
+            <div class="checkbox-row">
+                <input type="checkbox" id="bg-toggle">
+                <label for="bg-toggle">顯示背景</label>
+            </div>
+        </div>
+
+        <span class="section-label">主光源設定</span>
+        <div class="control-group">
+            <div class="control-row">
+                <label>光線強度 <span id="val-light">1.5</span></label>
+                <input type="range" id="input-light" min="0" max="5" step="0.1" value="1.5">
+            </div>
+        </div>
+    </div>
+
+    <div id="bottom-controls" style="display: none;">
+        <button class="play-btn" id="play-pause-btn">⏸</button>
+        <input type="range" id="anim-slider" min="0" max="1" step="0.001" value="0">
+    </div>
+
+    <div class="credit">Powered by Three.js</div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+
+        let scene, camera, renderer, controls, mixer, clock;
+        let isPlaying = true;
+        let currentAction = null;
+        let envTexture = null;
+        let envRotation = 0;
+        let mainLight;
+
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const animSlider = document.getElementById('anim-slider');
+        const bottomControls = document.getElementById('bottom-controls');
+        
+        const dial = document.getElementById('rotation-dial');
+        const dialPath = document.getElementById('dial-path');
+        const dialHandle = document.getElementById('dial-handle');
+
+        const inputEnv = document.getElementById('input-env');
+        const inputExposure = document.getElementById('input-exposure');
+        const inputLight = document.getElementById('input-light');
+        const bgToggle = document.getElementById('bg-toggle');
+        
+        const valEnv = document.getElementById('val-env');
+        const valExposure = document.getElementById('val-exposure');
+        const valLight = document.getElementById('val-light');
+
+        const hdriUrls = [
+            'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/docklands_02_1k.hdr',
+            'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/dikhololo_sunset_1k.hdr',
+            'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/golden_gate_hills_1k.hdr'
+        ];
+
+        window.changeHDRI = (index) => {
+            const items = document.querySelectorAll('.hdri-item');
+            items.forEach((item, i) => {
+                if(i === index) item.classList.add('active');
+                else item.classList.remove('active');
+            });
+
+            const rgbeLoader = new RGBELoader();
+            rgbeLoader.load(hdriUrls[index], function (texture) {
+                texture.mapping = THREE.EquirectangularReflectionMapping;
+                envTexture = texture;
+                scene.environment = texture;
+                envTexture.rotation = envRotation;
+                if(bgToggle.checked) scene.background = texture;
+            });
+        };
+
+        inputEnv.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            valEnv.innerText = val.toFixed(1);
+            scene.traverse((child) => {
+                if (child.isMesh && child.material) {
+                    child.material.envMapIntensity = val;
+                }
+            });
+        });
+
+        inputExposure.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            valExposure.innerText = val.toFixed(1);
+            renderer.toneMappingExposure = val;
+        });
+
+        inputLight.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            valLight.innerText = val.toFixed(1);
+            mainLight.intensity = val;
+        });
+
+        bgToggle.addEventListener('change', (e) => {
+            if(e.target.checked && envTexture) {
+                scene.background = envTexture;
+            } else {
+                scene.background = new THREE.Color(0x111111);
+            }
+        });
+
+        init();
+        animate();
+
+        async function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x111111);
+
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(5, 5, 5);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1;
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.body.appendChild(renderer.domElement);
+
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+
+            clock = new THREE.Clock();
+
+            // Simplified Lighting: Just one main light
+            mainLight = new THREE.DirectionalLight(0xffffff, 1.5);
+            mainLight.position.set(5, 10, 7.5);
+            mainLight.castShadow = true;
+            mainLight.shadow.mapSize.width = 2048;
+            mainLight.shadow.mapSize.height = 2048;
+            mainLight.shadow.camera.near = 0.5;
+            mainLight.shadow.camera.far = 50;
+            mainLight.shadow.camera.left = -10;
+            mainLight.shadow.camera.right = 10;
+            mainLight.shadow.camera.top = 10;
+            mainLight.shadow.camera.bottom = -10;
+            scene.add(mainLight);
+            
+            const ambient = new THREE.AmbientLight(0xffffff, 0.1);
+            scene.add(ambient);
+
+            // Initial HDRI
+            changeHDRI(0);
+
+            // Loader
+            const loader = new GLTFLoader();
+            loader.load('glb/AIGC.YY_005a.glb', function (gltf) {
+                const model = gltf.scene;
+                model.traverse(node => {
+                    if (node.isMesh) {
+                        node.castShadow = true;
+                        node.receiveShadow = true;
+                    }
+                });
+                scene.add(model);
+
+                const box = new THREE.Box3().setFromObject(model);
+                const center = box.getCenter(new THREE.Vector3());
+                const size = box.getSize(new THREE.Vector3());
+                
+                // Position model so its bottom is at Y=0 and it's centered on X and Z
+                model.position.x = -center.x;
+                model.position.y = -center.y + (size.y / 2);
+                model.position.z = -center.z;
+
+                const maxDim = Math.max(size.x, size.y, size.z);
+                const fov = camera.fov * (Math.PI / 180);
+                let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+                cameraZ *= 2.0;
+
+                camera.position.set(cameraZ, cameraZ, cameraZ);
+                camera.updateProjectionMatrix();
+                
+                controls.target.set(0, 0, 0);
+                controls.update();
+
+                if (gltf.animations && gltf.animations.length > 0) {
+                    mixer = new THREE.AnimationMixer(model);
+                    gltf.animations.forEach((clip) => {
+                        const action = mixer.clipAction(clip);
+                        action.play();
+                    });
+                    bottomControls.style.display = 'flex';
+                }
+
+                document.getElementById('loader').style.display = 'none';
+
+                // Add ground plane for shadows
+                const groundGeo = new THREE.CircleGeometry(10, 32);
+                const groundMat = new THREE.ShadowMaterial({ opacity: 0.4 });
+                const ground = new THREE.Mesh(groundGeo, groundMat);
+                ground.rotation.x = -Math.PI / 2;
+                ground.position.y = -0.01;
+                ground.receiveShadow = true;
+                scene.add(ground);
+            }, 
+            undefined, 
+            function (error) {
+                console.error(error);
+                document.getElementById('loader').innerText = 'Error loading 3D model';
+            });
+
+            // Dial Logic
+            let isDraggingDial = false;
+            const updateDial = (angle) => {
+                envRotation = angle;
+                if (envTexture) envTexture.rotation = angle;
+                
+                const radius = 10;
+                mainLight.position.x = Math.sin(angle) * radius;
+                mainLight.position.z = Math.cos(angle) * radius;
+                
+                const r = 45;
+                const x = 50 + r * Math.sin(angle);
+                const y = 50 - r * Math.cos(angle);
+                dialHandle.setAttribute('cx', x);
+                dialHandle.setAttribute('cy', y);
+                
+                const largeArcFlag = angle > Math.PI ? 1 : 0;
+                dialPath.setAttribute('d', `M 50 5 A 45 45 0 ${largeArcFlag} 1 ${x} ${y}`);
+            };
+
+            const handleDialMove = (e) => {
+                if(!isDraggingDial) return;
+                const rect = dial.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                const dx = e.clientX - centerX;
+                const dy = e.clientY - centerY;
+                let angle = Math.atan2(dx, -dy);
+                if (angle < 0) angle += Math.PI * 2;
+                updateDial(angle);
+            };
+
+            dial.addEventListener('mousedown', () => isDraggingDial = true);
+            window.addEventListener('mouseup', () => isDraggingDial = false);
+            window.addEventListener('mousemove', handleDialMove);
+            
+            updateDial(envRotation);
+
+            // UI Toggle Logic for Mobile
+            const uiToggleBtn = document.getElementById('ui-toggle-btn');
+            const uiContainer = document.getElementById('ui-container');
+            if (uiToggleBtn && uiContainer) {
+                uiToggleBtn.addEventListener('click', () => {
+                    uiContainer.classList.toggle('show');
+                });
+            }
+
+            // UI Listeners
+            playPauseBtn.addEventListener('click', () => {
+                isPlaying = !isPlaying;
+                playPauseBtn.innerText = isPlaying ? '⏸' : '▶';
+                if (mixer) {
+                    mixer._actions.forEach(action => action.paused = !isPlaying);
+                }
+            });
+
+            animSlider.addEventListener('mousedown', () => {
+                isPlaying = false;
+                playPauseBtn.innerText = '▶';
+                if (mixer) {
+                    mixer._actions.forEach(action => action.paused = true);
+                }
+            });
+
+            animSlider.addEventListener('input', (e) => {
+                if (mixer) {
+                    isPlaying = false;
+                    playPauseBtn.innerText = '▶';
+                    mixer._actions.forEach(action => {
+                        action.paused = true;
+                        const time = e.target.value * action.getClip().duration;
+                        action.time = time;
+                    });
+                    mixer.update(0);
+                }
+            });
+
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+            
+            if (mixer && isPlaying) {
+                mixer.update(delta);
+                // Update slider based on the first animation clip for reference
+                const actions = mixer._actions;
+                if (actions && actions.length > 0) {
+                    const progress = actions[0].time / actions[0].getClip().duration;
+                    animSlider.value = progress;
+                }
+            }
+            
+            controls.update();
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>

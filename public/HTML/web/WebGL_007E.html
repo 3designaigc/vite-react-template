@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Viewer: AIGC.YY_006E.glb</title>
+    <script src="https://code.playcanvas.com/playcanvas-stable.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #111111;
+            --sidebar-bg: #1a1a1a;
+            --accent: #d896ff;
+            --text: #ffffff;
+            --text-muted: #888888;
+            --border: #333333;
+        }
+        body { margin: 0; background-color: var(--bg-dark); overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: var(--text); }
+        canvas { display: block; width: 100vw; height: 100vh; }
+        
+        #loader {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            color: white; font-size: 1.2rem; pointer-events: none;
+            background: rgba(0,0,0,0.8); padding: 30px; border-radius: 12px; z-index: 1000;
+            text-align: center; border: 1px solid var(--border);
+        }
+
+        /* Floating Control Panel */
+        #ui-container {
+            position: fixed; top: 20px; right: 20px;
+            width: 240px; background: rgba(26, 26, 26, 0.85);
+            border: 1px solid var(--border); border-radius: 12px;
+            display: flex; flex-direction: column;
+            z-index: 100; padding: 16px;
+            overflow-y: auto; max-height: calc(100vh - 40px);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            scrollbar-width: none; /* Firefox */
+        }
+        #ui-container::-webkit-scrollbar { display: none; /* Safari and Chrome */ }
+        
+        h1 { font-size: 16px; margin-top: 0; margin-bottom: 16px; font-weight: 600; }
+        
+        .section-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; display: block; }
+
+        /* HDRI Grid */
+        .hdri-grid { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+        .hdri-item { 
+            padding: 8px 10px; background: #222; border-radius: 6px; cursor: pointer;
+            border: 1px solid var(--border); transition: all 0.2s;
+            display: flex; flex-direction: column;
+        }
+        .hdri-item:hover { background: #2a2a2a; }
+        .hdri-item.active { border-color: var(--accent); background: rgba(216, 150, 255, 0.1); }
+        .hdri-name { font-size: 12px; font-weight: 500; }
+        .hdri-desc { font-size: 9px; color: var(--text-muted); margin-top: 2px; }
+
+        /* Rotation Dial */
+        .dial-container { 
+            display: flex; justify-content: center; align-items: center;
+            padding: 5px 0 10px 0; position: relative;
+            margin-bottom: 16px;
+        }
+        .dial-svg { width: 90px; height: 90px; cursor: crosshair; }
+        .dial-bg { fill: none; stroke: var(--border); stroke-width: 2; }
+        .dial-progress { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; }
+        .dial-handle { fill: var(--accent); }
+        .dial-center { 
+            position: absolute; width: 50px; height: 50px; 
+            background: #222; border-radius: 50%; 
+            display: flex; justify-content: center; align-items: center;
+            border: 1px solid var(--border);
+        }
+        .dial-icon { font-size: 16px; opacity: 0.8; }
+
+        /* Controls */
+        .control-group { margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px; }
+        .control-row { display: flex; flex-direction: column; gap: 4px; }
+        .control-row label { font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between; }
+        .control-row input[type=range] { accent-color: var(--accent); width: 100%; height: 4px; }
+        
+        .checkbox-row { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+        input[type=checkbox] { accent-color: var(--accent); }
+
+        /* Bottom Controls */
+        #bottom-controls {
+            position: fixed; bottom: 20px; left: 20px;
+            background: rgba(0,0,0,0.6); padding: 8px 16px; border-radius: 30px;
+            display: flex; align-items: center; gap: 12px; backdrop-filter: blur(10px);
+            border: 1px solid var(--border); z-index: 50;
+        }
+        #anim-slider { width: 180px; accent-color: var(--accent); height: 4px; }
+        .play-btn { background: none; border: none; color: white; cursor: pointer; font-size: 14px; padding: 0; }
+
+        .credit { position: fixed; bottom: 10px; right: 320px; font-size: 10px; color: #444; }
+
+        /* Mobile RWD */
+        #ui-toggle-btn {
+            display: none;
+            position: fixed; top: 20px; right: 20px;
+            background: rgba(26, 26, 26, 0.85);
+            border: 1px solid var(--border); border-radius: 12px;
+            color: var(--text); padding: 10px 16px;
+            z-index: 101; cursor: pointer;
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: background 0.2s;
+        }
+        #ui-toggle-btn:hover { background: rgba(40, 40, 40, 0.9); }
+
+        @media (max-width: 768px) {
+            #ui-toggle-btn {
+                display: block;
+            }
+            #ui-container {
+                transform: translateX(120%);
+                opacity: 0;
+                pointer-events: none;
+                transition: transform 0.3s ease, opacity 0.3s ease;
+                top: 70px; /* Below the button */
+                max-height: calc(100vh - 90px);
+            }
+            #ui-container.show {
+                transform: translateX(0);
+                opacity: 1;
+                pointer-events: auto;
+            }
+            .credit { right: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="loader">Loading glb/AIGC.YY_006E.glb...</div>
+    <canvas id="application-canvas"></canvas>
+    
+    <button id="ui-toggle-btn">⚙️ 設定</button>
+
+    <div id="ui-container">
+        <h1>環境 & 光源 (PlayCanvas)</h1>
+        
+        <span class="section-label">HDRI 佈景</span>
+        <div class="hdri-grid">
+            <div class="hdri-item active" id="hdri-0" onclick="changeHDRI(0)">
+                <span class="hdri-name">Docklands 02</span>
+                <span class="hdri-desc">Industrial harbor</span>
+            </div>
+            <div class="hdri-item" id="hdri-1" onclick="changeHDRI(1)">
+                <span class="hdri-name">Dikhololo Sunset</span>
+                <span class="hdri-desc">Warm sunset</span>
+            </div>
+            <div class="hdri-item" id="hdri-2" onclick="changeHDRI(2)">
+                <span class="hdri-name">Golden Gate Hills</span>
+                <span class="hdri-desc">Outdoor landscape</span>
+            </div>
+        </div>
+
+        <span class="section-label">環境旋轉</span>
+        <div class="dial-container">
+            <svg class="dial-svg" id="env-dial" viewBox="0 0 100 100">
+                <circle class="dial-bg" cx="50" cy="50" r="45" />
+                <path class="dial-progress" id="env-dial-path" d="" />
+                <circle class="dial-handle" id="env-dial-handle" cx="50" cy="5" r="4" />
+            </svg>
+            <div class="dial-center">
+                <span class="dial-icon">🌍</span>
+            </div>
+        </div>
+
+        <span class="section-label" id="anim-label" style="display: none;">動畫列表</span>
+        <div id="anim-list" class="hdri-grid" style="display: none; margin-bottom: 24px;">
+            <!-- Animation items will be injected here -->
+        </div>
+
+        <span class="section-label">環境設定</span>
+        <div class="control-group">
+            <div class="control-row">
+                <label>環境強度 <span id="val-env">1.0</span></label>
+                <input type="range" id="input-env" min="0" max="5" step="0.1" value="1">
+            </div>
+            <div class="control-row">
+                <label>曝光度 <span id="val-exposure">1.0</span></label>
+                <input type="range" id="input-exposure" min="0" max="3" step="0.1" value="1">
+            </div>
+            <div class="checkbox-row">
+                <input type="checkbox" id="bg-toggle">
+                <label for="bg-toggle">顯示背景</label>
+            </div>
+        </div>
+
+        <span class="section-label">主光源設定</span>
+        <div class="control-group">
+            <div class="control-row">
+                <label>光線強度 <span id="val-light">1.5</span></label>
+                <input type="range" id="input-light" min="0" max="5" step="0.1" value="1.5">
+            </div>
+        </div>
+    </div>
+
+    <div id="bottom-controls" style="display: none;">
+        <button class="play-btn" id="play-pause-btn">⏸</button>
+        <input type="range" id="anim-slider" min="0" max="1" step="0.001" value="0">
+    </div>
+
+    <div class="credit">Powered by PlayCanvas Engine</div>
+
+    <script>
+        const canvas = document.getElementById('application-canvas');
+        const app = new pc.Application(canvas, {
+            mouse: new pc.Mouse(canvas),
+            touch: new pc.TouchDevice(canvas),
+            elementInput: new pc.ElementInput(canvas),
+            graphicsDeviceOptions: { alpha: false }
+        });
+
+        app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+        app.setCanvasResolution(pc.RESOLUTION_AUTO);
+
+        window.addEventListener('resize', () => app.resizeCanvas());
+
+        // Scene Setup
+        const camera = new pc.Entity('camera');
+        camera.addComponent('camera', {
+            clearColor: new pc.Color(0.06, 0.06, 0.06)
+        });
+        camera.setPosition(0, 0, 5);
+        app.root.addChild(camera);
+
+        const light = new pc.Entity('light');
+        light.addComponent('light', {
+            type: 'directional',
+            color: new pc.Color(1, 1, 1),
+            intensity: 1.5,
+            castShadows: true,
+            shadowBias: 0.05,
+            shadowDistance: 16,
+            normalOffsetBias: 0.05,
+            shadowResolution: 2048
+        });
+        light.setEulerAngles(45, 135, 0);
+        app.root.addChild(light);
+
+        // Orbit Camera Script
+        const OrbitCamera = pc.createScript('orbitCamera');
+        OrbitCamera.prototype.initialize = function() {
+            this.distance = 5;
+            this.yaw = 135;
+            this.pitch = -35;
+            this.target = new pc.Vec3(0, 0, 0);
+            
+            app.mouse.on(pc.EVENT_MOUSEMOVE, this.onMouseMove, this);
+            if (app.touch) {
+                app.touch.on(pc.EVENT_TOUCHMOVE, this.onTouchMove, this);
+            }
+        };
+        OrbitCamera.prototype.onMouseMove = function(e) {
+            if (e.buttons[pc.MOUSEBUTTON_LEFT]) {
+                this.yaw -= e.dx * 0.2;
+                this.pitch -= e.dy * 0.2;
+            } else if (e.buttons[pc.MOUSEBUTTON_RIGHT]) {
+                const factor = this.distance / 500;
+                this.target.x -= e.dx * factor;
+                this.target.y += e.dy * factor;
+            }
+        };
+        OrbitCamera.prototype.onTouchMove = function(e) {
+            if (e.touches.length === 1) {
+                const touch = e.touches[0];
+                this.yaw -= touch.dx * 0.2;
+                this.pitch -= touch.dy * 0.2;
+            }
+        };
+        OrbitCamera.prototype.update = function(dt) {
+            this.pitch = pc.math.clamp(this.pitch, -89, 89);
+            const rot = new pc.Quat().setFromEulerAngles(this.pitch, this.yaw, 0);
+            const pos = new pc.Vec3(0, 0, this.distance);
+            rot.transformVector(pos, pos);
+            pos.add(this.target);
+            this.entity.setPosition(pos);
+            this.entity.setRotation(rot);
+        };
+        camera.addComponent('script');
+        camera.script.create('orbitCamera');
+
+        // HDRI and Lighting Logic
+        const hdriUrls = [
+            'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/docklands_02_1k.hdr',
+            'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/dikhololo_sunset_1k.hdr',
+            'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/golden_gate_hills_1k.hdr'
+        ];
+
+        let currentHdriAsset = null;
+        let envRotation = 0;
+        let lightRotation = 0;
+
+        window.changeHDRI = (index) => {
+            const items = document.querySelectorAll('.hdri-item');
+            items.forEach((item, i) => {
+                item.classList.toggle('active', i === index);
+            });
+
+            // If we have a previous asset, we should ideally unload it, but for this demo we just load new
+            app.assets.loadFromUrl(hdriUrls[index], 'texture', (err, asset) => {
+                if (err) return console.error(err);
+                
+                const texture = asset.resource;
+                texture.addressU = pc.ADDRESS_CLAMP_TO_EDGE;
+                texture.addressV = pc.ADDRESS_CLAMP_TO_EDGE;
+                texture.minFilter = pc.FILTER_LINEAR;
+                texture.magFilter = pc.FILTER_LINEAR;
+
+                // Generate cubemap and env atlas for PBR lighting
+                const cubemap = pc.EnvLighting.generateSkyboxCubemap(texture);
+                const envAtlas = pc.EnvLighting.generateLightingSource(texture);
+                
+                app.scene.skybox = cubemap;
+                app.scene.envAtlas = envAtlas;
+                
+                currentHdriAsset = asset;
+                updateEnvRotation(envRotation);
+            });
+        };
+
+        const updateEnvRotation = (angle) => {
+            envRotation = angle;
+            app.scene.skyboxRotation = new pc.Quat().setFromEulerAngles(0, angle * 180 / Math.PI, 0);
+        };
+
+        // UI Listeners for Lighting
+        document.getElementById('input-env').addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            document.getElementById('val-env').innerText = val.toFixed(1);
+            app.scene.skyboxIntensity = val;
+        });
+
+        document.getElementById('input-exposure').addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            document.getElementById('val-exposure').innerText = val.toFixed(1);
+            app.scene.exposure = val;
+        });
+
+        document.getElementById('input-light').addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            document.getElementById('val-light').innerText = val.toFixed(1);
+            light.light.intensity = val;
+        });
+
+        document.getElementById('bg-toggle').addEventListener('change', (e) => {
+            app.scene.layers.getLayerByName('Skybox').enabled = e.target.checked;
+        });
+
+        // Dial Logic
+        const setupDial = (dialId, pathId, handleId, onUpdate) => {
+            const dial = document.getElementById(dialId);
+            const path = document.getElementById(pathId);
+            const handle = document.getElementById(handleId);
+            let isDragging = false;
+
+            const updateUI = (angle) => {
+                const r = 45;
+                const x = 50 + r * Math.sin(angle);
+                const y = 50 - r * Math.cos(angle);
+                handle.setAttribute('cx', x);
+                handle.setAttribute('cy', y);
+                const largeArcFlag = angle > Math.PI ? 1 : 0;
+                path.setAttribute('d', `M 50 5 A 45 45 0 ${largeArcFlag} 1 ${x} ${y}`);
+            };
+
+            dial.addEventListener('mousedown', () => isDragging = true);
+            window.addEventListener('mouseup', () => isDragging = false);
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const rect = dial.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                let angle = Math.atan2(e.clientX - centerX, -(e.clientY - centerY));
+                if (angle < 0) angle += Math.PI * 2;
+                updateUI(angle);
+                onUpdate(angle);
+            });
+
+            updateUI(0);
+        };
+
+        setupDial('env-dial', 'env-dial-path', 'env-dial-handle', updateEnvRotation);
+
+        // UI Toggle Logic for Mobile
+        const uiToggleBtn = document.getElementById('ui-toggle-btn');
+        const uiContainer = document.getElementById('ui-container');
+        if (uiToggleBtn && uiContainer) {
+            uiToggleBtn.addEventListener('click', () => {
+                uiContainer.classList.toggle('show');
+            });
+        }
+
+        // Model Loading
+        let modelEntity = null;
+        let animComponent = null;
+        let isPlaying = true;
+
+        const loadModel = () => {
+            const url = 'glb/AIGC.YY_005a.glb';
+            app.assets.loadFromUrl(url, 'container', (err, asset) => {
+                if (err) {
+                    document.getElementById('loader').innerText = 'Error loading model';
+                    return;
+                }
+                
+                modelEntity = asset.resource.instantiateRenderEntity();
+                app.root.addChild(modelEntity);
+
+                // Center and Scale
+                const meshInstances = modelEntity.findComponents('render').reduce((acc, r) => acc.concat(r.meshInstances), []);
+                const aabb = new pc.BoundingBox();
+                if (meshInstances.length > 0) {
+                    aabb.copy(meshInstances[0].aabb);
+                    for (let i = 1; i < meshInstances.length; i++) aabb.add(meshInstances[i].aabb);
+                }
+                
+                const center = aabb.center;
+                modelEntity.translate(-center.x, -center.y, -center.z);
+                
+                const maxDim = Math.max(aabb.halfExtents.x, aabb.halfExtents.y, aabb.halfExtents.z) * 2;
+                camera.script.orbitCamera.distance = maxDim * 2.5;
+
+                // Animations
+                if (asset.resource.animations && asset.resource.animations.length > 0) {
+                    modelEntity.addComponent('anim');
+                    animComponent = modelEntity.anim;
+                    
+                    const states = asset.resource.animations.map((anim, i) => ({
+                        name: anim.name || `Animation ${i+1}`,
+                        speed: 1
+                    }));
+
+                    const stateGraph = {
+                        layers: [{
+                            name: 'base',
+                            states: states,
+                            transitions: []
+                        }]
+                    };
+                    animComponent.loadStateGraph(stateGraph);
+                    
+                    asset.resource.animations.forEach((anim, i) => {
+                        const stateName = states[i].name;
+                        animComponent.assignAnimation('base', stateName, anim.resource);
+                    });
+
+                    // UI for animation selection
+                    const animLabel = document.getElementById('anim-label');
+                    const animList = document.getElementById('anim-list');
+                    animLabel.style.display = 'block';
+                    animList.style.display = 'flex';
+                    
+                    states.forEach((state, i) => {
+                        const item = document.createElement('div');
+                        item.className = 'hdri-item' + (i === 0 ? ' active' : '');
+                        item.innerHTML = `<span class="hdri-name">${state.name}</span>`;
+                        item.onclick = () => {
+                            document.querySelectorAll('#anim-list .hdri-item').forEach(el => el.classList.remove('active'));
+                            item.classList.add('active');
+                            animComponent.baseLayer.transition(state.name, 0.2);
+                        };
+                        animList.appendChild(item);
+                    });
+
+                    document.getElementById('bottom-controls').style.display = 'flex';
+                }
+
+                document.getElementById('loader').style.display = 'none';
+            });
+        };
+
+        // Animation Controls
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const animSlider = document.getElementById('anim-slider');
+
+        playPauseBtn.addEventListener('click', () => {
+            isPlaying = !isPlaying;
+            playPauseBtn.innerText = isPlaying ? '⏸' : '▶';
+            if (animComponent) animComponent.playing = isPlaying;
+        });
+
+        animSlider.addEventListener('mousedown', () => {
+            isPlaying = false;
+            playPauseBtn.innerText = '▶';
+            if (animComponent) animComponent.playing = false;
+        });
+
+        animSlider.addEventListener('input', (e) => {
+            if (animComponent) {
+                const progress = parseFloat(e.target.value);
+                // PlayCanvas AnimComponent doesn't have a direct "seek" by normalized time easily in stable without more setup
+                // but we can set the base layer's time
+                const layer = animComponent.baseLayer;
+                if (layer) {
+                    layer.activeStateCurrentTime = progress * layer.activeStateDuration;
+                }
+            }
+        });
+
+        app.on('update', (dt) => {
+            if (animComponent && isPlaying) {
+                const layer = animComponent.baseLayer;
+                if (layer && layer.activeStateDuration > 0) {
+                    animSlider.value = layer.activeStateCurrentTime / layer.activeStateDuration;
+                }
+            }
+        });
+
+        app.start();
+        changeHDRI(0);
+        loadModel();
+    </script>
+</body>
+</html>

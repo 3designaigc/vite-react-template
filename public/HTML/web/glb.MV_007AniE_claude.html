@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Viewer (model-viewer): glb\AIGC.YY_006AniE.glb</title>
+
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #111111;
+            --sidebar-bg: #1a1a1a;
+            --accent: #d896ff;
+            --text: #ffffff;
+            --text-muted: #888888;
+            --border: #333333;
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; background-color: var(--bg-dark); overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: var(--text); }
+
+        model-viewer {
+            position: fixed; inset: 0;
+            width: 100%; height: 100%;
+            background-color: var(--bg-dark);
+            --poster-color: transparent;
+        }
+
+        #loader {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            color: white; font-size: 1.2rem; pointer-events: none;
+            background: rgba(0,0,0,0.8); padding: 30px 36px; border-radius: 12px; z-index: 1000;
+            text-align: center; border: 1px solid var(--border); min-width: 220px;
+        }
+        #loader .bar { margin-top: 14px; height: 4px; width: 100%; background: #2a2a2a; border-radius: 2px; overflow: hidden; }
+        #loader .bar i { display: block; height: 100%; width: 0%; background: var(--accent); transition: width 0.15s ease; }
+
+        /* Floating Control Panel */
+        #ui-container {
+            position: fixed; top: 20px; right: 20px;
+            width: 240px; background: rgba(26, 26, 26, 0.85);
+            border: 1px solid var(--border); border-radius: 12px;
+            display: flex; flex-direction: column;
+            z-index: 100; padding: 16px;
+            overflow-y: auto; max-height: calc(100vh - 40px);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            scrollbar-width: none;
+        }
+        #ui-container::-webkit-scrollbar { display: none; }
+
+        h1 { font-size: 16px; margin-top: 0; margin-bottom: 16px; font-weight: 600; }
+
+        .section-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; display: block; }
+
+        /* HDRI list */
+        .hdri-grid { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+        .hdri-item {
+            padding: 8px 10px; background: #222; border-radius: 6px; cursor: pointer;
+            border: 1px solid var(--border); transition: all 0.2s;
+            display: flex; flex-direction: column;
+        }
+        .hdri-item:hover { background: #2a2a2a; }
+        .hdri-item.active { border-color: var(--accent); background: rgba(216, 150, 255, 0.1); }
+        .hdri-name { font-size: 12px; font-weight: 500; }
+        .hdri-desc { font-size: 9px; color: var(--text-muted); margin-top: 2px; }
+
+        /* Rotation Dial */
+        .dial-container {
+            display: flex; justify-content: center; align-items: center;
+            padding: 5px 0 10px 0; position: relative;
+            margin-bottom: 16px;
+        }
+        .dial-svg { width: 90px; height: 90px; cursor: crosshair; touch-action: none; }
+        .dial-bg { fill: none; stroke: var(--border); stroke-width: 2; }
+        .dial-progress { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; }
+        .dial-handle { fill: var(--accent); }
+        .dial-center {
+            position: absolute; width: 50px; height: 50px;
+            background: #222; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            border: 1px solid var(--border); pointer-events: none;
+        }
+        .dial-icon { font-size: 16px; opacity: 0.8; }
+
+        /* Controls */
+        .control-group { margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px; }
+        .control-row { display: flex; flex-direction: column; gap: 4px; }
+        .control-row label { font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between; }
+        .control-row input[type=range] { accent-color: var(--accent); width: 100%; height: 4px; }
+
+        .checkbox-row { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+        input[type=checkbox] { accent-color: var(--accent); }
+
+        /* Bottom Controls */
+        #bottom-controls {
+            position: fixed; bottom: 20px; left: 20px;
+            background: rgba(0,0,0,0.6); padding: 8px 16px; border-radius: 30px;
+            display: none; align-items: center; gap: 12px; backdrop-filter: blur(10px);
+            border: 1px solid var(--border); z-index: 50;
+        }
+        #anim-slider { width: 180px; accent-color: var(--accent); height: 4px; }
+        .play-btn { background: none; border: none; color: white; cursor: pointer; font-size: 14px; padding: 0; line-height: 1; }
+        #time-label { font-size: 10px; color: var(--text-muted); min-width: 64px; text-align: right; font-variant-numeric: tabular-nums; }
+
+        .credit { position: fixed; bottom: 10px; right: 320px; font-size: 10px; color: #444; }
+
+        /* Mobile RWD */
+        #ui-toggle-btn {
+            display: none;
+            position: fixed; top: 20px; right: 20px;
+            background: rgba(26, 26, 26, 0.85);
+            border: 1px solid var(--border); border-radius: 12px;
+            color: var(--text); padding: 10px 16px;
+            z-index: 101; cursor: pointer;
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: background 0.2s;
+        }
+        #ui-toggle-btn:hover { background: rgba(40, 40, 40, 0.9); }
+
+        @media (max-width: 768px) {
+            #ui-toggle-btn { display: block; }
+            #ui-container {
+                transform: translateX(120%);
+                opacity: 0; pointer-events: none;
+                transition: transform 0.3s ease, opacity 0.3s ease;
+                top: 70px;
+                max-height: calc(100vh - 90px);
+            }
+            #ui-container.show { transform: translateX(0); opacity: 1; pointer-events: auto; }
+            .credit { right: 20px; }
+            #anim-slider { width: 120px; }
+        }
+    </style>
+</head>
+<body>
+
+    <model-viewer
+        id="viewer"
+        src="glb\AIGC_YY_006AniE_mv.glb"
+        alt="AIGC.YY_006 進場組裝模型"
+        camera-controls
+        interaction-prompt="none"
+        autoplay
+        animation-name="EntranceAssembly"
+        tone-mapping="aces"
+        exposure="1"
+        shadow-intensity="1"
+        shadow-softness="0.8"
+        environment-image="https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/docklands_02_1k.hdr"
+        camera-orbit="45deg 70deg 105%"
+        field-of-view="30deg"
+        min-camera-orbit="auto 0deg auto"
+        max-camera-orbit="auto 180deg auto">
+    </model-viewer>
+
+    <div id="loader">
+        載入中… AIGC_YY_006AniE_mv.glb
+        <div class="bar"><i id="loader-bar"></i></div>
+    </div>
+
+    <button id="ui-toggle-btn">⚙️ 設定</button>
+
+    <div id="ui-container">
+        <h1>環境 & 渲染</h1>
+
+        <span class="section-label">HDRI 佈景</span>
+        <div class="hdri-grid">
+            <div class="hdri-item active" id="hdri-0" data-i="0">
+                <span class="hdri-name">Docklands 02</span>
+                <span class="hdri-desc">Industrial harbor</span>
+            </div>
+            <div class="hdri-item" id="hdri-1" data-i="1">
+                <span class="hdri-name">Dikhololo Sunset</span>
+                <span class="hdri-desc">Warm sunset</span>
+            </div>
+            <div class="hdri-item" id="hdri-2" data-i="2">
+                <span class="hdri-name">Golden Gate Hills</span>
+                <span class="hdri-desc">Outdoor landscape</span>
+            </div>
+        </div>
+
+        <span class="section-label">視角旋轉</span>
+        <div class="dial-container">
+            <svg class="dial-svg" id="rotation-dial" viewBox="0 0 100 100">
+                <circle class="dial-bg" cx="50" cy="50" r="45" />
+                <path class="dial-progress" id="dial-path" d="" />
+                <circle class="dial-handle" id="dial-handle" cx="50" cy="5" r="4" />
+            </svg>
+            <div class="dial-center">
+                <span class="dial-icon">🎥</span>
+            </div>
+        </div>
+
+        <span class="section-label">環境設定</span>
+        <div class="control-group">
+            <div class="control-row">
+                <label>曝光度 <span id="val-exposure">1.0</span></label>
+                <input type="range" id="input-exposure" min="0" max="3" step="0.1" value="1">
+            </div>
+            <div class="checkbox-row">
+                <input type="checkbox" id="bg-toggle">
+                <label for="bg-toggle">顯示背景</label>
+            </div>
+            <div class="checkbox-row">
+                <input type="checkbox" id="autorotate-toggle">
+                <label for="autorotate-toggle">自動旋轉</label>
+            </div>
+        </div>
+
+        <span class="section-label">陰影設定</span>
+        <div class="control-group">
+            <div class="control-row">
+                <label>陰影強度 <span id="val-shadow">1.0</span></label>
+                <input type="range" id="input-shadow" min="0" max="2" step="0.1" value="1">
+            </div>
+            <div class="control-row">
+                <label>陰影柔和度 <span id="val-soft">0.8</span></label>
+                <input type="range" id="input-soft" min="0" max="1" step="0.05" value="0.8">
+            </div>
+        </div>
+    </div>
+
+    <div id="bottom-controls">
+        <button class="play-btn" id="play-pause-btn">⏸</button>
+        <input type="range" id="anim-slider" min="0" max="1" step="0.001" value="0">
+        <span id="time-label">0.0s / 0.0s</span>
+    </div>
+
+    <div class="credit">Powered by &lt;model-viewer&gt; | 進場動畫：12 段已合併</div>
+
+    <script type="module">
+        const mv = document.getElementById('viewer');
+
+        const hdriUrls = [
+            'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/docklands_02_1k.hdr',
+            'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/dikhololo_sunset_1k.hdr',
+            'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/golden_gate_hills_1k.hdr'
+        ];
+        let currentHdri = 0;
+
+        // ---- Loader ----
+        const loader = document.getElementById('loader');
+        const loaderBar = document.getElementById('loader-bar');
+        mv.addEventListener('progress', (e) => {
+            const p = Math.round(e.detail.totalProgress * 100);
+            loaderBar.style.width = p + '%';
+            if (e.detail.totalProgress >= 1) {
+                setTimeout(() => loader.style.display = 'none', 200);
+            }
+        });
+        mv.addEventListener('error', () => {
+            loader.innerText = '模型載入失敗，請確認 GLB 檔與 HTML 在同一資料夾';
+        });
+
+        // ---- HDRI switching ----
+        const hdriItems = document.querySelectorAll('.hdri-item');
+        const bgToggle = document.getElementById('bg-toggle');
+        function changeHDRI(index) {
+            currentHdri = index;
+            hdriItems.forEach((it, i) => it.classList.toggle('active', i === index));
+            mv.environmentImage = hdriUrls[index];
+            if (bgToggle.checked) mv.skyboxImage = hdriUrls[index];
+        }
+        hdriItems.forEach(it => it.addEventListener('click', () => changeHDRI(parseInt(it.dataset.i, 10))));
+
+        bgToggle.addEventListener('change', (e) => {
+            mv.skyboxImage = e.target.checked ? hdriUrls[currentHdri] : null;
+        });
+
+        // ---- Exposure ----
+        const inputExposure = document.getElementById('input-exposure');
+        const valExposure = document.getElementById('val-exposure');
+        inputExposure.addEventListener('input', (e) => {
+            const v = parseFloat(e.target.value);
+            valExposure.innerText = v.toFixed(1);
+            mv.exposure = v;
+        });
+
+        // ---- Shadow ----
+        const inputShadow = document.getElementById('input-shadow');
+        const valShadow = document.getElementById('val-shadow');
+        inputShadow.addEventListener('input', (e) => {
+            const v = parseFloat(e.target.value);
+            valShadow.innerText = v.toFixed(1);
+            mv.shadowIntensity = v;
+        });
+        const inputSoft = document.getElementById('input-soft');
+        const valSoft = document.getElementById('val-soft');
+        inputSoft.addEventListener('input', (e) => {
+            const v = parseFloat(e.target.value);
+            valSoft.innerText = v.toFixed(2);
+            mv.shadowSoftness = v;
+        });
+
+        // ---- Auto rotate ----
+        document.getElementById('autorotate-toggle').addEventListener('change', (e) => {
+            mv.autoRotate = e.target.checked;
+        });
+
+        // ---- View rotation dial (controls camera azimuth) ----
+        const dial = document.getElementById('rotation-dial');
+        const dialPath = document.getElementById('dial-path');
+        const dialHandle = document.getElementById('dial-handle');
+        let isDraggingDial = false;
+
+        function setDialVisual(angle) {
+            const r = 45;
+            const x = 50 + r * Math.sin(angle);
+            const y = 50 - r * Math.cos(angle);
+            dialHandle.setAttribute('cx', x);
+            dialHandle.setAttribute('cy', y);
+            const largeArcFlag = angle > Math.PI ? 1 : 0;
+            dialPath.setAttribute('d', `M 50 5 A 45 45 0 ${largeArcFlag} 1 ${x} ${y}`);
+        }
+
+        function applyAzimuth(angle) {
+            // keep current polar angle (phi) and radius, only change azimuth (theta)
+            const o = mv.getCameraOrbit();
+            mv.cameraOrbit = `${angle}rad ${o.phi}rad ${o.radius}m`;
+        }
+
+        function pointerToAngle(clientX, clientY) {
+            const rect = dial.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            let angle = Math.atan2(clientX - cx, -(clientY - cy));
+            if (angle < 0) angle += Math.PI * 2;
+            return angle;
+        }
+
+        function onDialMove(e) {
+            if (!isDraggingDial) return;
+            const pt = e.touches ? e.touches[0] : e;
+            const angle = pointerToAngle(pt.clientX, pt.clientY);
+            setDialVisual(angle);
+            applyAzimuth(angle);
+        }
+
+        dial.addEventListener('mousedown', () => isDraggingDial = true);
+        dial.addEventListener('touchstart', () => isDraggingDial = true, { passive: true });
+        window.addEventListener('mouseup', () => isDraggingDial = false);
+        window.addEventListener('touchend', () => isDraggingDial = false);
+        window.addEventListener('mousemove', onDialMove);
+        window.addEventListener('touchmove', onDialMove, { passive: true });
+
+        // sync dial when the camera is moved by dragging the model
+        mv.addEventListener('camera-change', () => {
+            if (isDraggingDial) return;
+            const o = mv.getCameraOrbit();
+            let theta = o.theta % (Math.PI * 2);
+            if (theta < 0) theta += Math.PI * 2;
+            setDialVisual(theta);
+        });
+
+        // ---- Animation controls ----
+        const bottomControls = document.getElementById('bottom-controls');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const animSlider = document.getElementById('anim-slider');
+        const timeLabel = document.getElementById('time-label');
+        let duration = 0;
+
+        function fmt(t) { return t.toFixed(1) + 's'; }
+
+        mv.addEventListener('load', () => {
+            // initial dial position from current camera
+            const o = mv.getCameraOrbit();
+            let theta = o.theta % (Math.PI * 2);
+            if (theta < 0) theta += Math.PI * 2;
+            setDialVisual(theta);
+
+            if (mv.availableAnimations && mv.availableAnimations.length > 0) {
+                duration = mv.duration || 0;
+                bottomControls.style.display = 'flex';
+                playPauseBtn.innerText = mv.paused ? '▶' : '⏸';
+                timeLabel.innerText = `${fmt(0)} / ${fmt(duration)}`;
+            }
+        });
+
+        playPauseBtn.addEventListener('click', () => {
+            if (mv.paused) { mv.play(); playPauseBtn.innerText = '⏸'; }
+            else { mv.pause(); playPauseBtn.innerText = '▶'; }
+        });
+
+        animSlider.addEventListener('input', (e) => {
+            mv.pause();
+            playPauseBtn.innerText = '▶';
+            if (duration > 0) {
+                mv.currentTime = parseFloat(e.target.value) * duration;
+                timeLabel.innerText = `${fmt(mv.currentTime)} / ${fmt(duration)}`;
+            }
+        });
+
+        // keep slider/time in sync during playback
+        function tick() {
+            if (duration > 0 && !mv.paused) {
+                const p = mv.currentTime / duration;
+                animSlider.value = isFinite(p) ? p : 0;
+                timeLabel.innerText = `${fmt(mv.currentTime)} / ${fmt(duration)}`;
+            }
+            requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+
+        // ---- Mobile settings toggle ----
+        const uiToggleBtn = document.getElementById('ui-toggle-btn');
+        const uiContainer = document.getElementById('ui-container');
+        uiToggleBtn.addEventListener('click', () => uiContainer.classList.toggle('show'));
+    </script>
+</body>
+</html>

@@ -1,8 +1,8 @@
 {
-	"name": "vite-react-template",
-	"description": "A template for building a React application with Vite, Hono, and Cloudflare Workers",
+	"name": "0613paper-vrhc",
+	"description": "0613Paper interactive presentation site built with Vite, React, Hono, and Cloudflare Workers",
 	"cloudflare": {
-		"label": "Vite React Template",
+		"label": "0613Paper VRHC",
 		"products": [
 			"Workers"
 		],

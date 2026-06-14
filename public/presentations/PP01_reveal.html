@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PP01 論文 GPT</title>
+  <link rel="stylesheet" href="../reveal.js/dist/reveal.css">
+  <link rel="stylesheet" href="../reveal.js/dist/theme/white.css">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root { --accent: #003049; }
+
+    :root {
+      color-scheme: light;
+      --bg: #f4f4f2;
+      --paper: #ffffff;
+      --ink: #111111;
+      --muted: #555555;
+      --line: #111111;
+      --teal: #003049; /* Bauhaus Blue */
+      --brick: #d62828; /* Bauhaus Red */
+      --gold: #fcbf49; /* Bauhaus Yellow */
+    }
+    .reveal {
+      font-family: "Noto Sans TC", "Segoe UI", Arial, sans-serif;
+      color: var(--ink);
+      background-color: var(--bg);
+      background-image:
+        linear-gradient(rgba(0, 48, 73, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 48, 73, 0.04) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+    .reveal .slides { text-align: left; }
+    .reveal .slides section { box-sizing: border-box; }
+    .reveal h1, .reveal h2, .reveal h3 {
+      font-family: 'Oswald', 'Noto Sans TC', sans-serif;
+      letter-spacing: -0.01em;
+      text-transform: uppercase;
+      line-height: 1.05;
+      color: var(--ink);
+      font-weight: 700;
+    }
+    .reveal h1 { font-size: 2.38em; max-width: 1040px; }
+    .reveal h2 { font-size: 1.62em; margin-bottom: 0.25em; }
+    .reveal h3 { font-size: 0.82em; color: var(--accent); margin: 0 0 0.45em; text-transform: uppercase; }
+    .reveal p, .reveal li { color: var(--muted); font-size: 0.58em; line-height: 1.6; font-weight: 700; }
+    .kicker {
+      color: var(--brick);
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.4em;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin-bottom: 1.2em;
+    }
+    .lead { max-width: 920px; font-size: 0.72em !important; color: #333333 !important; }
+    .title-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+      gap: 34px;
+      align-items: center;
+    }
+    .split {
+      display: grid;
+      grid-template-columns: minmax(0, 0.95fr) minmax(300px, 1.05fr);
+      gap: 28px;
+      align-items: center;
+    }
+    .panel-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 24px; }
+    .panel {
+      border: 3px solid var(--line);
+      background: #fff;
+      padding: 16px;
+      min-height: 112px;
+      box-shadow: 4px 4px 0px #111111;
+      border-radius: 0;
+    }
+    .panel p { font-size: 0.5em; }
+    .statement {
+      border: 3px solid var(--line);
+      border-left: 12px solid var(--accent);
+      background: #fff;
+      padding: 24px;
+      max-width: 1000px;
+      box-shadow: 4px 4px 0px #111111;
+      border-radius: 0;
+    }
+    .statement p { font-size: 0.76em !important; color: var(--ink) !important; }
+    .side-stage {
+      height: 420px;
+      border: 3px solid var(--line);
+      background:
+        linear-gradient(135deg, color-mix(in srgb, var(--accent) 20%, transparent), transparent 45%),
+        linear-gradient(315deg, rgba(214, 40, 40, 0.15), transparent 38%),
+        #fff;
+      display: grid;
+      place-items: center;
+      padding: 22px;
+      text-align: center;
+      box-shadow: 6px 6px 0px #111111;
+      border-radius: 0;
+    }
+    .side-stage strong { color: var(--accent); font-family: 'Oswald', sans-serif; font-size: 1.1em; line-height: 1.25; white-space: pre-line; text-transform: uppercase; }
+    .flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 12px; }
+    .flow .step { border: 3px solid var(--line); background: #fff; padding: 10px; min-height: 108px; box-shadow: 4px 4px 0px #111111; border-radius: 0; }
+    .flow b { color: var(--accent); font-size: 0.4em; display: block; margin-bottom: 0.3em; font-family: 'Oswald', sans-serif; }
+    .flow p { font-size: 0.43em; line-height: 1.4; }
+    .media-frame {
+      border: 3px solid var(--line);
+      background: #fff;
+      min-height: 360px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      box-shadow: 6px 6px 0px #111111;
+      border-radius: 0;
+    }
+    .media-frame img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      max-height: 520px;
+      object-fit: contain;
+    }
+    .caption { color: var(--muted) !important; font-size: 0.38em !important; margin-top: 18px; }
+    .navlinks { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+    .navlinks a {
+      border: 3px solid var(--line);
+      background: #fff;
+      color: var(--accent);
+      text-decoration: none;
+      padding: 8px 12px;
+      font-size: 0.38em;
+      font-weight: 700;
+      font-family: 'Oswald', sans-serif;
+      box-shadow: 3px 3px 0px #111111;
+    }
+    .navlinks a:hover {
+      transform: translate(-1px, -1px);
+      box-shadow: 4px 4px 0px #111111;
+      background: var(--gold);
+      color: var(--ink);
+    }
+    @media (max-width: 900px) {
+      .title-grid, .split, .panel-grid, .flow { grid-template-columns: 1fr; }
+      .side-stage { height: 320px; }
+    }
+    @media (max-width: 640px) {
+      .reveal .slides section { height: 100%; overflow-y: auto; padding: 18px 16px !important; }
+      .reveal h1 { font-size: 1.6em; line-height: 1.12; }
+      .reveal h2 { font-size: 1.18em; line-height: 1.16; }
+      .reveal p, .reveal li { font-size: 0.72em; line-height: 1.48; }
+      .kicker { font-size: 0.5em; margin-bottom: 0.8em; }
+      .lead { font-size: 0.82em !important; line-height: 1.5 !important; }
+      .panel, .statement, .flow .step { padding: 14px; min-height: auto; box-shadow: 2px 2px 0px #111111; }
+      .statement { border-left-width: 6px; }
+      .statement p { font-size: 0.86em !important; }
+      .side-stage { height: 220px; box-shadow: 3px 3px 0px #111111; }
+      .side-stage strong { font-size: 0.88em; }
+      .flow b { font-size: 0.55em; }
+      .flow p, .panel p { font-size: 0.66em; }
+      .navlinks a { font-size: 0.55em; box-shadow: 2px 2px 0px #111111; }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <section>
+        <div class="title-grid">
+          <div>
+            <div class="kicker">PP01 / Research Foundation</div>
+            <h1>生成式人工智慧在建築物入口之設計與施工之研究</h1>
+            <p class="lead">以台中雅園會館為例：AIGC、BIM/IFC 與 GRC 工法的開放式整合流程</p>
+            <div class="navlinks">
+              <a href="index.html">回總入口</a>
+              <a href="PP02_reveal.html">PP02 Web3D</a>
+            </div>
+          </div>
+          <div class="side-stage"><strong>AIGC
+BIM
+IFC
+GRC</strong></div>
+        </div>
+      </section>
+
+      <section data-transition="slide">
+        <div class="kicker">PP01 / Research Foundation</div>
+        <h2>AIGC 不只是圖像生成，而是建築流程的開放式協作引擎</h2>
+        <div class="statement fragment fade-up slow"><p>本篇作為三篇簡報的背景與方法論基礎，說明生成式 AI 如何串接 BIM、IFC、Blender/Rhino/Revit 與 GRC 工法。</p></div>
+        <div class="panel-grid"><div class="panel fragment fade-up"><h3>研究案例</h3><p>研究案例：台中雅園會館入口</p></div><div class="panel fragment fade-up"><h3>核心路線</h3><p>核心路線：AIGC -&gt; BIM/IFC -&gt; GRC 施工</p></div><div class="panel fragment fade-up"><h3>銜接 PP02</h3><p>銜接 PP02：將模型與流程轉成 Web3D 展示</p></div></div>
+      </section>
+
+      <section data-transition="slide">
+        <div class="kicker">Research Context</div>
+        <h2>研究背景：AIGC 進入建築設計流程</h2>
+        <div class="statement fragment fade-up slow"><p>傳統建築流程常把概念生成、模型整合與施工落地切成不同工具與不同階段；AIGC 提供重新串接這些環節的機會。</p></div>
+        <div class="panel-grid"><div class="panel fragment fade-up"><h3>生成式 AI 從圖像工具轉為設計協作工具</h3><p>生成式 AI 從圖像工具轉為設計協作工具</p></div><div class="panel fragment fade-up"><h3>入口造型是視覺、結構、材料與施工整合的高複雜場域</h3><p>入口造型是視覺、結構、材料與施工整合的高複雜場域</p></div><div class="panel fragment fade-up"><h3>研究需要從概念效果走向可驗證、可施工、可溝通的流程</h3><p>研究需要從概念效果走向可驗證、可施工、可溝通的流程</p></div></div>
+      </section>
+
+      <section data-transition="slide">
+        <div class="kicker">Research Questions</div>
+        <h2>研究問題：如何從生成式概念走向可施工構件</h2>
+        <div class="statement fragment fade-up slow"><p>關鍵不只是產生漂亮圖像，而是讓概念能進入 BIM/IFC、材料工法與施工階段。</p></div>
+        <div class="panel-grid"><div class="panel fragment fade-up"><h3>建築設計如何從 AIGC 概念轉成可建模資料</h3><p>建築設計如何從 AIGC 概念轉成可建模資料</p></div><div class="panel fragment fade-up"><h3>BIM/IFC 如何支援跨軟體整合與資料交換</h3><p>BIM/IFC 如何支援跨軟體整合與資料交換</p></div><div class="panel fragment fade-up"><h3>GRC 工法如何承接自由曲面與入口構件落地</h3><p>GRC 工法如何承接自由曲面與入口構件落地</p></div></div>
+      </section>
+
+      <section data-transition="slide">
+        <div class="kicker">Technology Map</div>
+        <h2>文獻與技術脈絡：AIGC、BIM、IFC 與材料工法</h2>
+        <div class="statement fragment fade-up slow"><p>PP01 建立的是一張技術地圖，讓後續 PP02 的 Web3D 與 PP03 的 MCP/Bonsai 4D 有共同語言。</p></div>
+        <div class="panel-grid"><div class="panel fragment fade-up"><h3>AIGC</h3><p>AIGC：概念生成、快速迭代與多代理協同</p></div><div class="panel fragment fade-up"><h3>BIM/IFC</h3><p>BIM/IFC：跨軟體模型資料與建築資訊語意</p></div><div class="panel fragment fade-up"><h3>GRC</h3><p>GRC：材料科技、自由曲面構件與施工落地</p></div></div>
+      </section>
+
+      <section data-transition="slide">
+        <div class="kicker">Method</div>
+        <h2>研究方法：開放式 AIGC-BIM-IFC 流程</h2>
+        <div class="statement fragment fade-up slow"><p>研究方法以開放流程取代封閉工具鏈，讓 AI、模型、材料與展示可以在同一條管線上迭代。</p></div>
+        <div class="panel-grid"><div class="panel fragment fade-up"><h3>概念生成層</h3><p>概念生成層：AIGC 與提示詞迭代</p></div><div class="panel fragment fade-up"><h3>模型整合層</h3><p>模型整合層：Blender / Rhino / Revit / IFC</p></div><div class="panel fragment fade-up"><h3>落地驗證層</h3><p>落地驗證層：GRC 製作、施工階段與展示溝通</p></div></div>
+      </section>
+
+      <section data-transition="slide">
+        <div class="kicker">Case</div>
+        <h2>案例執行：台中雅園會館入口</h2>
+        <div class="statement fragment fade-up slow"><p>案例作為研究驗證場域，將入口造型從設計效果、3D 模型、構件邏輯一路推進到材料與施工。</p></div>
+        <div class="panel-grid"><div class="panel fragment fade-up"><h3>設計生成</h3><p>設計生成：AIGC 影像與概念探索</p></div><div class="panel fragment fade-up"><h3>模型整合</h3><p>模型整合：Blender / Rhino / Revit 的幾何與資料串接</p></div><div class="panel fragment fade-up"><h3>施工落地</h3><p>施工落地：GRC 製作、分件與現場施工階段</p></div></div>
+      </section>
+
+      <section data-transition="slide">
+        <div class="kicker">Contribution</div>
+        <h2>研究貢獻：補足 AIGC 在建築落地應用中的斷點</h2>
+        <div class="statement fragment fade-up slow"><p>PP01 的重點在於建立從 AI 概念到施工實務的完整論述，並為 PP02/PP03 的 Web3D 與自動化工作流提供基礎。</p></div>
+        <div class="panel-grid"><div class="panel fragment fade-up"><h3>補足 AIGC 在建築應用中的學理與實務空白</h3><p>補足 AIGC 在建築應用中的學理與實務空白</p></div><div class="panel fragment fade-up"><h3>建立 AIGC、BIM/IFC 與 GRC 工法整合流程</h3><p>建立 AIGC、BIM/IFC 與 GRC 工法整合流程</p></div><div class="panel fragment fade-up"><h3>為建築產業數位轉型與智慧施工提供案例</h3><p>為建築產業數位轉型與智慧施工提供案例</p></div></div>
+      </section>
+
+      <section data-transition="slide">
+        <div class="kicker">Bridge</div>
+        <h2>銜接 PP02：從研究流程走向互動式 Web3D 展示</h2>
+        <div class="statement fragment fade-up slow"><p>PP01 建立流程，PP02 將 IFC/GLB 與模型展示變成瀏覽器可操作的學術簡報主體。</p></div>
+        <div class="panel-grid"><div class="panel fragment fade-up"><h3>PP01</h3><p>PP01：提出 AIGC + BIM/IFC + GRC 的研究流程</p></div><div class="panel fragment fade-up"><h3>PP02</h3><p>PP02：把模型與類 4D 敘事轉成 Web3D 展示</p></div><div class="panel fragment fade-up"><h3>PP03</h3><p>PP03：再把工作流推進到 MCP + Bonsai BIM 4D 自動化</p></div></div>
+      </section>
+
+    </div>
+  </div>
+  <script src="../reveal.js/dist/reveal.js"></script>
+  <script>
+    const mobileQuery = window.matchMedia("(max-width: 640px)");
+    const deckSize = mobileQuery.matches
+      ? { width: 390, height: 760, margin: 0.02, center: false }
+      : { width: 1280, height: 720, margin: 0.05, center: true };
+    Reveal.initialize({
+      hash: true,
+      controls: true,
+      progress: true,
+      center: deckSize.center,
+      transition: "slide",
+      width: deckSize.width,
+      height: deckSize.height,
+      margin: deckSize.margin,
+      minScale: 0.2,
+      maxScale: 1.4
+    });
+    mobileQuery.addEventListener("change", () => window.location.reload());
+  </script>
+</body>
+</html>

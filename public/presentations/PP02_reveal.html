@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PP02 | 從 IFC 到互動式 Web3D</title>
+  <link rel="stylesheet" href="../reveal.js/dist/reveal.css">
+  <link rel="stylesheet" href="../reveal.js/dist/theme/white.css">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f4f2;
+      --paper: #ffffff;
+      --ink: #111111;
+      --muted: #555555;
+      --line: #111111;
+      --teal: #003049; /* Bauhaus Blue */
+      --brick: #d62828; /* Bauhaus Red */
+      --gold: #fcbf49; /* Bauhaus Yellow */
+    }
+
+    .reveal {
+      font-family: "Noto Sans TC", "Segoe UI", Arial, sans-serif;
+      color: var(--ink);
+      background-color: var(--bg);
+      background-image:
+        linear-gradient(rgba(0, 48, 73, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 48, 73, 0.04) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    .reveal .slides { text-align: left; }
+    .reveal .slides section { box-sizing: border-box; }
+
+    .reveal h1,
+    .reveal h2,
+    .reveal h3 {
+      color: var(--ink);
+      font-family: 'Oswald', 'Noto Sans TC', sans-serif;
+      letter-spacing: -0.01em;
+      text-transform: uppercase;
+      line-height: 1.05;
+      font-weight: 700;
+    }
+
+    .reveal h1 { font-size: 2.38em; max-width: 1040px; }
+    .reveal h2 { font-size: 1.62em; margin-bottom: 0.25em; }
+    .reveal h3 { font-size: 0.82em; color: var(--brick); margin: 0 0 0.45em; text-transform: uppercase; }
+    .reveal p,
+    .reveal li { color: var(--muted); font-size: 0.58em; line-height: 1.6; font-weight: 700; }
+
+    .kicker {
+      color: var(--brick);
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.4em;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin-bottom: 1.2em;
+    }
+
+    .lead {
+      max-width: 920px;
+      font-size: 0.72em !important;
+      color: #333333 !important;
+    }
+
+    .title-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+      gap: 34px;
+      align-items: center;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: minmax(0, 0.95fr) minmax(300px, 1.05fr);
+      gap: 28px;
+      align-items: center;
+    }
+
+    .statement {
+      border: 3px solid var(--line);
+      border-left: 12px solid var(--teal);
+      background: #fff;
+      padding: 16px;
+      max-width: 1040px;
+      box-shadow: 4px 4px 0px #111111;
+      border-radius: 0;
+    }
+
+    .statement p {
+      color: var(--ink) !important;
+      font-size: 0.76em !important;
+    }
+
+    .panel-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-top: 24px;
+    }
+
+    .panel {
+      border: 3px solid var(--line);
+      background: #fff;
+      padding: 20px;
+      min-height: 170px;
+      box-shadow: 4px 4px 0px #111111;
+      border-radius: 0;
+    }
+
+    .panel p { font-size: 0.5em; }
+
+    .media-frame {
+      border: 3px solid var(--line);
+      background: #fff;
+      min-height: 360px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      box-shadow: 6px 6px 0px #111111;
+      border-radius: 0;
+    }
+
+    .media-frame img,
+    .media-frame object {
+      display: block;
+      width: 100%;
+      height: 100%;
+      max-height: 520px;
+      object-fit: contain;
+    }
+
+    .visual-word {
+      display: grid;
+      place-items: center;
+      min-height: 360px;
+      border: 3px solid var(--line);
+      background:
+        linear-gradient(135deg, rgba(0, 48, 73, 0.15), transparent 46%),
+        linear-gradient(315deg, rgba(214, 40, 40, 0.15), transparent 42%),
+        #fff;
+      text-align: center;
+      padding: 28px;
+      box-shadow: 6px 6px 0px #111111;
+      border-radius: 0;
+    }
+
+    .visual-word strong {
+      color: var(--teal);
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.35em;
+      line-height: 1.15;
+      white-space: pre-line;
+      text-transform: uppercase;
+    }
+
+    .visual-word strong span {
+      display: block;
+    }
+
+    .reveal .fragment {
+      will-change: opacity, transform;
+    }
+
+    .reveal .fragment.slow {
+      transition-duration: 0.8s;
+    }
+
+    .reveal .fragment.fast {
+      transition-duration: 0.35s;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .flow .step {
+      border: 3px solid var(--line);
+      background: #fff;
+      padding: 10px;
+      min-height: 108px;
+      box-shadow: 4px 4px 0px #111111;
+      border-radius: 0;
+    }
+
+    .flow b {
+      color: var(--teal);
+      font-size: 0.4em;
+      display: block;
+      margin-bottom: 0.3em;
+      font-family: 'Oswald', sans-serif;
+    }
+
+    .flow p { font-size: 0.43em; line-height: 1.4; }
+
+    .demo-frame {
+      width: 100%;
+      height: 560px;
+      border: 3px solid var(--line);
+      background: #fff;
+      box-shadow: 6px 6px 0px #111111;
+      border-radius: 0;
+    }
+
+    .demo-note {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 0.38em;
+      font-weight: 700;
+    }
+
+    .caption {
+      color: var(--muted) !important;
+      font-size: 0.38em !important;
+      margin-top: 14px;
+    }
+
+    .link-chip {
+      display: inline-flex;
+      align-items: center;
+      border: 3px solid var(--line);
+      background: #fff;
+      color: var(--brick);
+      padding: 8px 12px;
+      text-decoration: none;
+      font-size: 0.38em;
+      font-weight: 700;
+      margin-top: 18px;
+      box-shadow: 3px 3px 0px #111111;
+      font-family: 'Oswald', sans-serif;
+    }
+
+    .link-chip:hover {
+      transform: translate(-1px, -1px);
+      box-shadow: 4px 4px 0px #111111;
+      background: var(--gold);
+      color: var(--ink);
+    }
+
+    @media (max-width: 900px) {
+      .title-grid,
+      .split,
+      .panel-grid,
+      .flow {
+        grid-template-columns: 1fr;
+      }
+      .media-frame,
+      .visual-word { min-height: 300px; }
+      .demo-frame { height: 430px; }
+    }
+
+    @media (max-width: 640px) {
+      .reveal .slides section {
+        height: 100%;
+        overflow-y: auto;
+        padding: 18px 16px !important;
+      }
+      .reveal h1 { font-size: 1.6em; line-height: 1.12; }
+      .reveal h2 { font-size: 1.18em; line-height: 1.16; }
+      .reveal h3 { font-size: 0.88em; }
+      .reveal p,
+      .reveal li { font-size: 0.72em; line-height: 1.48; }
+      .kicker { font-size: 0.5em; margin-bottom: 0.8em; }
+      .lead { font-size: 0.82em !important; line-height: 1.5 !important; }
+      .statement,
+      .panel,
+      .flow .step { padding: 14px; min-height: auto; box-shadow: 2px 2px 0px #111111; }
+      .statement { border-left-width: 6px; }
+      .statement p { font-size: 0.86em !important; }
+      .panel p,
+      .flow p { font-size: 0.66em; }
+      .flow b { font-size: 0.55em; }
+      .visual-word,
+      .media-frame { min-height: 220px; }
+      .visual-word strong { font-size: 0.98em; }
+      .demo-frame { height: 54vh; min-height: 360px; }
+      .demo-note { display: grid; gap: 6px; font-size: 0.48em; }
+      .link-chip { font-size: 0.55em; }
+    }
+  </style>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+      <section data-transition="fade">
+        <div class="title-grid">
+          <div>
+            <div class="kicker">PP02 / From PPTX to Reveal.js</div>
+            <h1>從 IFC 到互動式 Web3D</h1>
+            <p class="lead fragment fade-up slow">結合 AIGC 的建築資訊可視化工作流 Web3D 技術核心研究</p>
+            <a class="link-chip fragment fade-up" href="https://bim4d-workflow.vercel.app/" target="_blank" rel="noopener">外部案例連結</a>
+          </div>
+          <div class="media-frame fragment fade-left slow">
+            <img src="../PP02_Web3D_analysis/image1.png" alt="台中雅園會館與 Web3D 封面素材">
+          </div>
+        </div>
+      </section>
+
+      <section data-transition="slide">
+        <div class="split">
+          <div>
+            <div class="kicker">AIGC Engineering</div>
+            <h2>AIGC 工程的可執行性 </h2>
+            <div class="statement fragment fade-right slow">
+              <p>這次主題不是單純介紹 AIGC應用，而是討論 AIGC 進入工程流程後，如何成為可執行、可驗證、可展示的建築資訊工作流。</p>
+            </div>
+            <div class="panel-grid">
+              <div class="panel fragment fade-up"><h3>研究者</h3><p>林明凱，朝陽科大視傳系，數位設計顧問。</p></div>
+              <div class="panel fragment fade-up"><h3>時間軸</h3><p>從 2023/12/06 到 2024/01/10，聚焦 AIGC 工程落地。</p></div>
+              <div class="panel fragment fade-up"><h3>重點</h3><p>以建築資訊、模型轉換與 Web3D 展示作為驗證場域。</p></div>
+            </div>
+          </div>
+          <div class="media-frame fragment fade-left slow">
+            <img src="../PP02_Web3D_analysis/image7.jpg" alt="AIGC 工程可執行性素材">
+          </div>
+        </div>
+      </section>
+
+      <section data-transition="convex">
+        <div class="kicker">Core Claim</div>
+        <h2>DWG 無法完整承載 BIM/IFC 的空間與時間關係</h2>
+        <div class="statement fragment fade-up slow">
+          <p>當繪圖工具由 2D 轉為 3D，當溝通工具由圖紙轉為手機或 iPad，工程過程中許多圖面與環節會暴露出不夠明確的問題。Web3D 的價值，就是讓模型、流程與時間關係可以被操作與討論。</p>
+        </div>
+        <div class="panel-grid">
+          <div class="panel fragment fade-right"><h3>2D -> 3D</h3><p>從平面圖面轉向模型資訊，理解方式也必須改變。</p></div>
+          <div class="panel fragment fade-up"><h3>圖紙 -> 行動裝置</h3><p>溝通場域轉到手機、iPad 與瀏覽器，互動介面成為核心。</p></div>
+          <div class="panel fragment fade-left"><h3>溝通</h3><p>模型與施工階段必須能被旋轉、放大、播放與回看。</p></div>
+        </div>
+      </section>
+
+      <section data-transition="fade">
+        <div class="split">
+          <div>
+            <div class="kicker">Time / Assembly / Architecture</div>
+            <h2>時間、組合、建築：從事倍功半到事半功倍</h2>
+            <div class="statement fragment fade-right slow">
+              <p>建築資訊可視化的核心不只是展示完成品，而是把時間、組合關係與施工階段轉成可理解的序列。</p>
+            </div>
+          </div>
+          <div class="visual-word"><strong>
+            <span class="fragment zoom-in">時間</span>
+            <span class="fragment zoom-in">組合</span>
+            <span class="fragment zoom-in">建築</span>
+            <span class="fragment fade-up slow">事倍功半 -> 事半功倍</span>
+          </strong></div>
+        </div>
+      </section>
+
+      <section data-transition="fade">
+        <div class="split">
+          <div>
+            <div class="kicker">AIGC Turning Point</div>
+            <h2>AIGC 跨入工程流程的時間點</h2>
+            <div class="statement fragment fade-right slow">
+              <p>2022/11/30 ChatGPT 問世之後，AIGC 從文字與圖像生成快速擴展到程式、模型、資料處理與工程協作。本研究重點，是把這股能力透過 Web3D 應用於建築資訊展示。</p>
+            </div>
+          </div>
+          <div class="visual-word"><strong>
+            <span class="fragment zoom-in">AIGC</span>
+            <span class="fragment fade-up fast">跨</span>
+            <span class="fragment fade-up slow">2022 / 11 / 30</span>
+          </strong></div>
+        </div>
+      </section>
+
+      <section data-transition="slide">
+        <div class="split">
+          <div>
+            <div class="kicker">Web3D Technology Route</div>
+            <h2>HTML / Web / 3D：從 Model-Viewer 到 Three.js</h2>
+            <div class="statement fragment fade-right slow">
+              <p>Web3D 展示不是單一路線。Model-Viewer 適合快速模型檢視；Three.js、WebGL 與 WebGPU 則適合更深入的材質、相機、時間軸與動態控制。</p>
+            </div>
+            <div class="flow">
+              <div class="step fragment fade-up"><b>HTML</b><p>承載互動展示頁與 reveal.js 簡報。</p></div>
+              <div class="step fragment fade-up"><b>Model-Viewer</b><p>快速嵌入 GLB，適合模型檢視。</p></div>
+              <div class="step fragment fade-up"><b>Three.js</b><p>控制材質、相機、動畫與時間軸。</p></div>
+              <div class="step fragment fade-up"><b>WebGL / WebGPU</b><p>對應瀏覽器端 3D 渲染能力。</p></div>
+            </div>
+          </div>
+          <div class="media-frame fragment fade-left slow">
+            <img src="../PP02_Web3D_analysis/image8.png" alt="Web3D 技術路線素材">
+          </div>
+        </div>
+      </section>
+
+      <section data-transition="slide">
+        <div class="split">
+          <div>
+            <div class="kicker">AI Toolchain</div>
+            <h2>AI 工具鏈：Google AI Studio、Claude、Codex、OpenAI、OpenClaw、Hermes</h2>
+            <div class="statement fragment fade-right slow">
+              <p>AI-assisted programming 的價值在於把 Web3D viewer 的開發轉為提示詞、程式碼、測試、修正的快速迭代流程，讓非純前端背景者也能建立可展示原型。</p>
+            </div>
+          </div>
+          <div class="media-frame fragment fade-left slow">
+            <img src="../PP02_Web3D_analysis/image9.png" alt="AI 工具鏈素材">
+          </div>
+        </div>
+      </section>
+
+      <section data-transition="slide">
+        <div class="split">
+          <div>
+            <div class="kicker">Research Gap</div>
+            <h2>研究缺口：3D Workflow 與 Blender Bonsai GLB 管線</h2>
+            <div class="statement fragment fade-right slow">
+              <p>從 IFC 到 Blend 再到 GLB 的流程，是讓 BIM 模型進入 Web3D 的關鍵橋梁。研究缺口在於如何降低模型轉換與展示製作門檻，並建立可重複的工作流。</p>
+            </div>
+            <div class="flow">
+              <div class="step fragment fade-up"><b>IFC</b><p>建築資訊模型與 OpenBIM 語意來源。</p></div>
+              <div class="step fragment fade-up"><b>Blender Bonsai</b><p>模型整備、材質、階段與資料處理。</p></div>
+              <div class="step fragment fade-up"><b>GLB</b><p>瀏覽器端可用的 3D 模型載體。</p></div>
+              <div class="step fragment fade-up"><b>Web3D</b><p>進入 reveal.js 與網站展示。</p></div>
+            </div>
+          </div>
+          <div class="media-frame fragment fade-left slow">
+            <img src="../PP02_Web3D_analysis/image11.jpg" alt="Blender Bonsai Workflow">
+          </div>
+        </div>
+      </section>
+
+      <section data-transition="fade">
+        <div class="split">
+          <div>
+            <div class="kicker">Web3D Display</div>
+            <h2>Web3D 展示：從建築資訊模型到瀏覽器端互動展示</h2>
+            <div class="statement fragment fade-right slow">
+              <p>最後的交付不只是 PPT，而是能在網站中開啟、嵌入、滿畫面展示的 Web3D 簡報。下一頁直接內嵌 Journal_Index.html，作為 PP02 的第二層展示入口。</p>
+            </div>
+          </div>
+          <div class="media-frame fragment fade-left slow">
+            <img src="../PP02_Web3D_analysis/image15.png" alt="Web3D 展示素材">
+          </div>
+        </div>
+      </section>
+
+      <section data-transition="fade">
+        <div class="kicker">Embedded Web3D Demo</div>
+        <h2>第二層展示入口：Journal_Index.html</h2>
+        <iframe class="demo-frame" src="../HTML/Journal_Index.html" title="Journal Web3D demo"></iframe>
+        <div class="demo-note">
+          <span>內嵌來源：HTML/Journal_Index.html</span>
+          <span>展示重點：GLB / IFC / Web3D / 類 4D 動態頁</span>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="../reveal.js/dist/reveal.js"></script>
+  <script>
+    const mobileQuery = window.matchMedia("(max-width: 640px)");
+    const deckSize = mobileQuery.matches
+      ? { width: 390, height: 760, margin: 0.02, center: false }
+      : { width: 1280, height: 720, margin: 0.05, center: true };
+
+    Reveal.initialize({
+      hash: true,
+      controls: true,
+      progress: true,
+      center: deckSize.center,
+      transition: "slide",
+      width: deckSize.width,
+      height: deckSize.height,
+      margin: deckSize.margin,
+      minScale: 0.2,
+      maxScale: 1.4
+    });
+
+    mobileQuery.addEventListener("change", () => window.location.reload());
+  </script>
+</body>
+</html>
