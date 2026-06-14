@@ -142,6 +142,8 @@ out
 # Nuxt.js build / generate output
 .nuxt
 dist
+!public/reveal.js/dist/
+!public/reveal.js/dist/**
 
 # Gatsby files
 .cache/
