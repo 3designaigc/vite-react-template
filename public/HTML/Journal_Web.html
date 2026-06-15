@@ -1,66 +1,34 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
+<!doctype html>
+<html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CYUT.Test</title>
-	
-    <style>
-        body {
-            display: flex;
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            font-family: oswald, sans-serif;
-        }
-        #left {
-            width: 10%;
-            background-color: #f0f0f0;
-            padding: 10px;
-            box-sizing: border-box;
-            overflow-y: auto;
-        }
-        #right {
-            width: 80%;
-            border: none;
-        }
-        .file-link {
-            display: block;
-            margin: 10px 0;
-            padding: 10px;
-            background-color: #ffffff;
-            text-decoration: none;
-            color: #333;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            text-align: center;
-        }
-        .file-link:hover {
-            background-color: #ddd;
-        }
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-    </style>
-    <script>
-        function loadIframe(file) {
-            document.getElementById('iframe').src = file;
-        }
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Journal_Web 靜態展示</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&family=Oswald:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="bauhaus-web3d.css">
+  <script>
+    function loadIframe(file) {
+      document.getElementById("iframe").src = file;
+    }
+  </script>
 </head>
 <body>
-    <div id="left">
-	    <a href="#" class="file-link" onclick="loadIframe('web/Base64.html')">Base64</a>
-        <a href="#" class="file-link" onclick="loadIframe('web/ModelV.html')">ModelV</a>
-		<a href="#" class="file-link" onclick="loadIframe('web/ThreeJS_007E.html')">ThreeJs</a>
-		<a href="#" class="file-link" onclick="loadIframe('web/glb.3js_007E.html')">ThreeJs.質感</a>		
-		<a href="#" class="file-link" onclick="loadIframe('web/WebGL_007E.html')">WebGL</a>
-		<a href="#" class="file-link" onclick="loadIframe('web/WebGPU_007E.html')">WebGPU</a>      
-    </div>
-    <div id="right">
-        <iframe id="iframe" src="web/ModelV.html"></iframe>
-    </div>
+  <main class="web3d-shell">
+    <section class="web3d-frame is-compact">
+      <div class="web3d-layout is-full">
+        <aside class="web3d-side" aria-label="靜態 Web3D 選單">
+          <button class="is-red" type="button" onclick="loadIframe('web/Base64.html')">Base64</button>
+          <button class="is-blue" type="button" onclick="loadIframe('web/ModelV.html')">ModelV</button>
+          <button class="is-yellow" type="button" onclick="loadIframe('web/ThreeJS_007E.html')">ThreeJs</button>
+          <button class="is-red" type="button" onclick="loadIframe('web/glb.3js_007E.html')">質感</button>
+          <button class="is-blue" type="button" onclick="loadIframe('web/WebGL_007E.html')">WebGL</button>
+          <button class="is-yellow" type="button" onclick="loadIframe('web/WebGPU_007E.html')">WebGPU</button>
+        </aside>
+        <section class="web3d-viewer">
+          <iframe id="iframe" src="web/ModelV.html" title="Static Web3D viewer"></iframe>
+        </section>
+      </div>
+    </section>
+  </main>
 </body>
 </html>

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./App.css";
 
 type Entry = {
@@ -120,6 +120,40 @@ function App() {
 		setReloadKey((value) => value + 1);
 		viewerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
 	}
+
+	function loadEntryFromIframe(src: string, title?: string) {
+		const normalizedSrc = src.startsWith("/") ? src : `/${src}`;
+		const entry = Object.values(entries).find((item) => item.src === normalizedSrc);
+		if (entry) {
+			loadEntry(entry);
+			return;
+		}
+
+		loadEntry({
+			id: `iframe-${normalizedSrc}`,
+			title: title || normalizedSrc.replace(/^\//, ""),
+			src: normalizedSrc,
+		});
+	}
+
+	useEffect(() => {
+		const parentWindow = window as typeof window & {
+			handleIframeRedirect?: (src: string, title?: string) => void;
+		};
+
+		parentWindow.handleIframeRedirect = loadEntryFromIframe;
+
+		function handleMessage(event: MessageEvent) {
+			if (!event.data || event.data.type !== "iframeRedirect" || typeof event.data.src !== "string") return;
+			loadEntryFromIframe(event.data.src, event.data.title);
+		}
+
+		window.addEventListener("message", handleMessage);
+		return () => {
+			window.removeEventListener("message", handleMessage);
+			delete parentWindow.handleIframeRedirect;
+		};
+	}, []);
 
 	async function toggleFullscreen() {
 		if (!viewerRef.current) return;

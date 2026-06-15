@@ -1,65 +1,33 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
+<!doctype html>
+<html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CYUT.Test</title>
-	
-    <style>
-        body {
-            display: flex;
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            font-family: oswald, sans-serif;
-        }
-        #left {
-            width: 10%;
-            background-color: #f0f0f0;
-            padding: 10px;
-            box-sizing: border-box;
-            overflow-y: auto;
-        }
-        #right {
-            width: 80%;
-            border: none;
-        }
-        .file-link {
-            display: block;
-            margin: 10px 0;
-            padding: 10px;
-            background-color: #ffffff;
-            text-decoration: none;
-            color: #333;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            text-align: center;
-        }
-        .file-link:hover {
-            background-color: #ddd;
-        }
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-    </style>
-    <script>
-        function loadIframe(file) {
-            document.getElementById('iframe').src = file;
-        }
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Journal_WebAni 動態展示</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&family=Oswald:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="bauhaus-web3d.css">
+  <script>
+    function loadIframe(file) {
+      document.getElementById("iframe").src = file;
+    }
+  </script>
 </head>
 <body>
-    <div id="left">
-		<a href="#" class="file-link" onclick="loadIframe('web/ba64.3js_007AniE.html')">base.3JsAni</a>
-	    <a href="#" class="file-link" onclick="loadIframe('web/glb.3js_007AniE.html')">Glb.3JsAni</a>
-		<a href="#" class="file-link" onclick="loadIframe('web/glb.MV_007AniE_claude.html')">Glb.MVAni</a>
-		<a href="#" class="file-link" onclick="loadIframe('web/glb.Gpu_007AniE.html')">GPUAni</a>
-	    <a href="#" class="file-link" onclick="loadIframe('web/Claude_optimized_aligned.html')">4D動態</a>     
-    </div>
-    <div id="right">
-        <iframe id="iframe" src="web/glb.3js_007AniE.html"></iframe>
-    </div>
+  <main class="web3d-shell">
+    <section class="web3d-frame is-compact">
+      <div class="web3d-layout is-full">
+        <aside class="web3d-side" aria-label="動態 Web3D 選單">
+          <button class="is-red" type="button" onclick="loadIframe('web/ba64.3js_007AniE.html')">Base Ani</button>
+          <button class="is-blue" type="button" onclick="loadIframe('web/glb.3js_007AniE.html')">GLB Ani</button>
+          <button class="is-yellow" type="button" onclick="loadIframe('web/glb.MV_007AniE_claude.html')">ModelV Ani</button>
+          <button class="is-red" type="button" onclick="loadIframe('web/glb.Gpu_007AniE.html')">GPU Ani</button>
+          <button class="is-blue" type="button" onclick="loadIframe('web/Claude_optimized_aligned.html')">4D 動態</button>
+        </aside>
+        <section class="web3d-viewer">
+          <iframe id="iframe" src="web/glb.3js_007AniE.html" title="Animated Web3D viewer"></iframe>
+        </section>
+      </div>
+    </section>
+  </main>
 </body>
 </html>

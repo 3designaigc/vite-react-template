@@ -163,8 +163,11 @@
       cursor: pointer;
       transition: transform 0.1s, box-shadow 0.1s;
     }
-    .tag:hover {
+    .tag:hover,
+    .tag:focus-visible {
       transform: scale(1.15);
+      outline: 3px solid var(--bh-yellow);
+      outline-offset: 4px;
     }
     .tag-red { background: var(--bh-red); border-radius: 50%; }
     .tag-blue { background: var(--bh-blue); }
@@ -294,10 +297,10 @@
     </div>
 
     <div class="color-tags">
-      <div class="tag tag-red" title="切換至 動畫 A (靜態)"></div>
-      <div class="tag tag-blue" title="切換至 動畫 B (動態)"></div>
-      <div class="tag tag-yellow" title="開啟/關閉 原始畫作 A"></div>
-      <div class="tag tag-orange-diamond" title="開啟/關閉 原始畫作 B"></div>
+      <div class="tag tag-red" role="button" tabindex="0" aria-label="切換至首頁動畫 A" title="切換至 動畫 A (靜態)"></div>
+      <div class="tag tag-blue" role="button" tabindex="0" aria-label="切換至首頁動畫 B" title="切換至 動畫 B (動態)"></div>
+      <div class="tag tag-yellow" role="button" tabindex="0" aria-label="開啟或關閉原始畫作 A" title="開啟/關閉 原始畫作 A"></div>
+      <div class="tag tag-orange-diamond" role="button" tabindex="0" aria-label="開啟或關閉原始畫作 B" title="開啟/關閉 原始畫作 B"></div>
     </div>
 
     <!-- Floating Painting Cards -->
@@ -1000,20 +1003,31 @@
       }
     };
 
-    document.querySelector('.tag-red').addEventListener('click', () => {
+    function bindTag(selector, action) {
+      const tag = document.querySelector(selector);
+      tag.addEventListener('click', action);
+      tag.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          action(event);
+        }
+      });
+    }
+
+    bindTag('.tag-red', () => {
       switchPage('bauhaus_animation - A.html', '首頁動畫 A (靜態)');
     });
 
-    document.querySelector('.tag-blue').addEventListener('click', () => {
+    bindTag('.tag-blue', () => {
       switchPage('bauhaus_animation - B.html', '首頁動畫 B (動態)');
     });
 
-    document.querySelector('.tag-yellow').addEventListener('click', (e) => {
+    bindTag('.tag-yellow', (e) => {
       e.stopPropagation();
       toggleCard('a');
     });
 
-    document.querySelector('.tag-orange-diamond').addEventListener('click', (e) => {
+    bindTag('.tag-orange-diamond', (e) => {
       e.stopPropagation();
       toggleCard('b');
     });

@@ -1,64 +1,30 @@
-<!DOCTYPE html>
-<html lang="zh">
+<!doctype html>
+<html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web.3D</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC&family=Oswald&display=swap" rel="stylesheet">
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            overflow: hidden;
-            font-family: 'Noto Sans TC', sans-serif;
-        }
-        .container {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-        .top, .bottom {
-            flex: 0 0 10%;
-            background-color: #f1f1f1;
-            text-align: left;
-            padding: 10px;
-            box-sizing: border-box;
-            font-family: 'Oswald', sans-serif;
-        }
-        .middle {
-            flex: 1;
-            overflow: hidden;
-        }
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-        .link {
-            display: inline-block;
-            margin: 0 10px;
-        }
-        h2 {
-            display: inline;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Journal_Index 第二層入口</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&family=Oswald:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="bauhaus-web3d.css">
 </head>
 <body>
-    <div class="container">
-        <div class="top">
-            <h2>Web.3D</h2>
-            <div class="link"><a href="Journal_Web.html" target="content">靜態</a></div>
-            <div class="link"><a href="Journal_WebAni.html" target="content">動態</a></div>
-			<div class="link"><a href="web/threeJS4_fixed.html" target="content">GLB</a></div>
-			<div class="link"><a href="web/GLB_IFC_http_server_viewer.html" target="content">IFC</a></div>
-			<div class="link"><a href="web/PPj.YY3DW_web3d.html" target="content">技術整理</a></div>
-
-		
-        </div>
-        <div class="middle">
-            <iframe src="Journal_Web.html" name="content"></iframe>
-        </div>
-    </div>
+  <main class="web3d-shell">
+    <section class="web3d-frame">
+      <header class="web3d-topbar">
+        <h1 class="web3d-brand">Web.3D</h1>
+        <nav class="web3d-nav" aria-label="Web3D 第二層導覽">
+          <a class="is-red" href="Journal_Web.html" target="content">靜態</a>
+          <a class="is-blue" href="Journal_WebAni.html" target="content">動態</a>
+          <a class="is-yellow" href="web/threeJS4_fixed.html" target="content">GLB</a>
+          <a class="is-red" href="web/GLB_IFC_http_server_viewer.html" target="content">IFC</a>
+          <a class="is-blue" href="web/PPj.YY3DW_web3d.html" target="content">技術整理</a>
+        </nav>
+        <div class="web3d-title">Journal_Index 第二層入口</div>
+      </header>
+      <div class="web3d-stage">
+        <iframe src="Journal_Web.html" name="content" title="Journal Web3D content"></iframe>
+      </div>
+    </section>
+  </main>
 </body>
 </html>
