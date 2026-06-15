@@ -268,6 +268,12 @@ function App() {
 					<FileButton entry={entries.ifcViewer} label="GLB_IFC_http_server_viewer.html" tag="IFC 載入器" onLoad={loadEntry} />
 				</div>
 			</section>
+
+			<footer className="site-footer">
+				<span>Architecture</span>
+				<strong>React + Vite + Hono + Cloudflare Workers</strong>
+				<p>第一層以 React 管理互動入口，靜態簡報、PDF 與 Web3D 資產由 Vite 打包，後端以 Hono 執行於 Cloudflare Workers。</p>
+			</footer>
 		</div>
 	);
 }
