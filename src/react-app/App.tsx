@@ -1,189 +1,119 @@
-import { useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import "./App.css";
 
 type Entry = {
 	id: string;
-	label: string;
 	title: string;
 	src: string;
-	kind: "reveal" | "pdf" | "web3d" | "media" | "html";
-	description: string;
-	accent: "blue" | "red" | "green" | "yellow";
 	download?: string;
 };
 
-const primaryEntries: Entry[] = [
-	{
+const entries = {
+	homeA: {
+		id: "home-a",
+		title: "AIGC.4DBIM 3D 動畫",
+		src: "/bauhaus_animation - A.html",
+	},
+	homeB: {
+		id: "home-b",
+		title: "AIGC.4DBIM 3D 動畫",
+		src: "/bauhaus_animation - B.html",
+	},
+	pp01: {
 		id: "pp01",
-		label: "PP01",
 		title: "PP01 論文 GPT",
 		src: "/presentations/PP01_reveal.html",
-		kind: "reveal",
-		description: "AIGC、BIM/IFC、GRC 工法與入口案例的研究背景。",
-		accent: "blue",
 	},
-	{
-		id: "pp02",
-		label: "PP02",
-		title: "PP02 期刊 Web3D",
-		src: "/presentations/PP02_reveal.html",
-		kind: "reveal",
-		description: "IFC 到 GLB、Google AI Studio、three.js 與類 4D 展示。",
-		accent: "red",
-	},
-	{
-		id: "pp03",
-		label: "PP03",
-		title: "PP03 MCP + Bonsai BIM 4D",
-		src: "/presentations/PP03_reveal.html",
-		kind: "reveal",
-		description: "Blender Bonsai、MCP、Skill 與 BIM 4D 語意工作流。",
-		accent: "green",
-	},
-];
-
-const pp02Entries: Entry[] = [
-	{
-		id: "pp02-exact",
-		label: "PPTX 復刻",
-		title: "PP02 PPTX 視覺復刻",
-		src: "/presentations/PP02_Web3D_pptx_exact_reveal.html",
-		kind: "reveal",
-		description: "以 PowerPoint 匯出 PNG 逐頁重建，供差異比較。",
-		accent: "red",
-	},
-	{
-		id: "pp02-animation",
-		label: "PPT 動畫",
-		title: "PP02 原始 PPT 動畫",
-		src: "/presentations/PP02_Web3D_original_animation.html",
-		kind: "media",
-		description: "保留 PowerPoint 淡入淡出與物件動畫節奏。",
-		accent: "yellow",
-	},
-	{
-		id: "blender-bim",
-		label: "BIM 4D",
-		title: "2026 BlenderBIM",
-		src: "/presentations/2026_BlenderBIM.html",
-		kind: "reveal",
-		description: "延伸的 BlenderBIM / 4D BIM 展示簡報。",
-		accent: "green",
-	},
-];
-
-const pdfEntries: Entry[] = [
-	{
-		id: "pdf-pp01",
-		label: "PP01 PDF",
+	pp01Pdf: {
+		id: "pp01-pdf",
 		title: "PP01 PDF 文件",
 		src: "/HTML/PDF/PP01_論文_GPT.pdf",
 		download: "/HTML/PDF/PP01_論文_GPT.pdf",
-		kind: "pdf",
-		description: "PP01 原始閱讀文件。",
-		accent: "blue",
 	},
-	{
-		id: "pdf-pp02",
-		label: "PP02 PDF",
+	pp02: {
+		id: "pp02",
+		title: "PP02 期刊 Web3D",
+		src: "/presentations/PP02_reveal.html",
+	},
+	pp02Exact: {
+		id: "pp02-exact",
+		title: "PP02 PPTX 視覺復刻",
+		src: "/presentations/PP02_Web3D_pptx_exact_reveal.html",
+	},
+	pp02Animation: {
+		id: "pp02-animation",
+		title: "PP02 原始 PPT 動畫",
+		src: "/presentations/PP02_Web3D_original_animation.html",
+	},
+	pp02Pdf: {
+		id: "pp02-pdf",
 		title: "PP02 PDF 文件",
 		src: "/HTML/PDF/PP02_期刊.pdf",
 		download: "/HTML/PDF/PP02_期刊.pdf",
-		kind: "pdf",
-		description: "PP02 期刊閱讀文件。",
-		accent: "red",
 	},
-	{
-		id: "pdf-pp03",
-		label: "PP03 PDF",
+	pp03: {
+		id: "pp03",
+		title: "PP03 MCP + Bonsai BIM 4D",
+		src: "/presentations/PP03_reveal.html",
+	},
+	poster: {
+		id: "poster",
+		title: "PP03 研討會海報",
+		src: "/HTML/PDF/PP03_海報.pdf",
+		download: "/HTML/PDF/PP03_海報.pdf",
+	},
+	blender: {
+		id: "blender",
+		title: "2026 BlenderBIM 簡報",
+		src: "/presentations/2026_BlenderBIM.html",
+	},
+	pp03Pdf: {
+		id: "pp03-pdf",
 		title: "PP03 PDF 文件",
 		src: "/HTML/PDF/PP03_結合 MCP 之 Blender Bonsai BIM 4D 應用分析.pdf",
 		download: "/HTML/PDF/PP03_結合 MCP 之 Blender Bonsai BIM 4D 應用分析.pdf",
-		kind: "pdf",
-		description: "PP03 MCP + Bonsai BIM 4D 閱讀文件。",
-		accent: "green",
 	},
-	{
-		id: "poster",
-		label: "PP03 海報",
-		title: "PP03 海報 PDF",
-		src: "/HTML/PDF/PP03_海報.pdf",
-		download: "/HTML/PDF/PP03_海報.pdf",
-		kind: "pdf",
-		description: "PP03 海報版輸出。",
-		accent: "yellow",
+	rtx: {
+		id: "rtx",
+		title: "Architectural Design With Agents on NVIDIA RTX Spark",
+		src: "https://www.youtube.com/embed/a6fUvL9gYAQ",
 	},
-];
-
-const web3dEntries: Entry[] = [
-	{
+	journalIndex: {
 		id: "journal-index",
-		label: "JOURNAL_INDEX",
-		title: "JOURNAL_INDEX 第二層入口",
-		src: "/HTML/Journal_Index_Web3D.html",
-		kind: "web3d",
-		description: "集中管理 Web3D / GLB / IFC / 類 4D 動態頁。",
-		accent: "red",
+		title: "Journal_Index 第二層入口",
+		src: "/HTML/Journal_Index.html",
 	},
-	{
+	journalWeb: {
 		id: "journal-web",
-		label: "Journal Web",
-		title: "Journal Web 說明頁",
+		title: "Journal_Web",
 		src: "/HTML/Journal_Web.html",
-		kind: "html",
-		description: "PP02 Web3D 說明頁。",
-		accent: "blue",
 	},
-	{
+	journalWebAni: {
 		id: "journal-webani",
-		label: "WebAni",
-		title: "Journal WebAni 動態頁",
+		title: "Journal_WebAni",
 		src: "/HTML/Journal_WebAni.html",
-		kind: "web3d",
-		description: "類 4D / 動態 Web3D 展示入口。",
-		accent: "green",
 	},
-	{
-		id: "bauhaus-a",
-		label: "Bauhaus A",
-		title: "Bauhaus Animation A",
-		src: "/bauhaus_animation - A.html",
-		kind: "html",
-		description: "Bauhaus 風格動畫展示頁。",
-		accent: "yellow",
+	web3dTech: {
+		id: "web3d-tech",
+		title: "PPj.YY3DW Web3D",
+		src: "/HTML/web/PPj.YY3DW_web3d.html",
 	},
-	{
-		id: "bauhaus-b",
-		label: "Bauhaus B",
-		title: "Bauhaus Animation B",
-		src: "/bauhaus_animation - B.html",
-		kind: "html",
-		description: "Bauhaus 風格動畫替代版本。",
-		accent: "yellow",
+	glbAni: {
+		id: "glb-ani",
+		title: "GLB three.js 動態",
+		src: "/HTML/web/glb.3js_007AniE.html",
 	},
-];
-
-const allEntries = [...primaryEntries, ...pp02Entries, ...pdfEntries, ...web3dEntries];
+	ifcViewer: {
+		id: "ifc-viewer",
+		title: "IFC / GLB viewer",
+		src: "/HTML/web/GLB_IFC_http_server_viewer.html",
+	},
+} satisfies Record<string, Entry>;
 
 function App() {
-	const [activeEntry, setActiveEntry] = useState<Entry>(primaryEntries[1]);
+	const [activeEntry, setActiveEntry] = useState<Entry>(entries.homeA);
 	const [reloadKey, setReloadKey] = useState(0);
 	const viewerRef = useRef<HTMLDivElement>(null);
-
-	const downloadHref = activeEntry.download;
-	const status = useMemo(() => {
-		const byKind = allEntries.reduce<Record<string, number>>((acc, entry) => {
-			acc[entry.kind] = (acc[entry.kind] ?? 0) + 1;
-			return acc;
-		}, {});
-
-		return [
-			`${allEntries.length} entries`,
-			`${byKind.reveal ?? 0} reveal`,
-			`${byKind.pdf ?? 0} PDF`,
-			`${byKind.web3d ?? 0} Web3D`,
-		];
-	}, []);
 
 	function loadEntry(entry: Entry) {
 		setActiveEntry(entry);
@@ -193,7 +123,6 @@ function App() {
 
 	async function toggleFullscreen() {
 		if (!viewerRef.current) return;
-
 		if (!document.fullscreenElement) {
 			await viewerRef.current.requestFullscreen();
 		} else {
@@ -201,45 +130,50 @@ function App() {
 		}
 	}
 
-	return (
-		<div className="app-shell">
-			<div className="shape-circle" aria-hidden="true" />
-			<div className="shape-square" aria-hidden="true" />
+	const isHomeMode = activeEntry.id === entries.homeA.id || activeEntry.id === entries.homeB.id;
 
-			<header className="hero">
-				<div>
-					<p className="kicker">0613Paper / Vite + React + Hono + Cloudflare</p>
-					<h1>AIGC.4DBIM 互動簡報網站</h1>
-					<p className="hero-copy">
-						以 React 管理第一層入口，靜態資產保留 reveal.js、PDF、Web3D demo 與影片。
-						部署時由 Cloudflare Workers + Hono 提供 API 與 SPA fallback。
+	return (
+		<div className="layout-wrapper">
+			<header className="site-header">
+				<div className="headline">
+					<div className="kicker">AIGC.4D BIM WORKFLOW</div>
+					<h1>AIGC.4DBIM</h1>
+					<p>
+						以台中大墩南路「雅園會館」為核心案例，聚焦於台灣第一座由 AIGC
+						生成式人工智慧參與設計並實際完成之建築體，進一步探討 AIGC 在建築設計、4D施工整合與數位應用中的學術意義與實務價值
 					</p>
 				</div>
-				<nav className="toolbar" aria-label="主簡報入口">
-					{primaryEntries.map((entry) => (
-						<button
-							key={entry.id}
-							type="button"
-							className={activeEntry.id === entry.id ? "is-active" : ""}
-							data-accent={entry.accent}
-							onClick={() => loadEntry(entry)}
-						>
-							{entry.label}
-						</button>
-					))}
+				<nav className="toolbar" aria-label="主入口">
+					<button type="button" className={isHomeMode ? "is-active" : ""} onClick={() => loadEntry(entries.homeA)}>
+						首頁動畫
+					</button>
+					<button type="button" className={activeEntry.id === entries.pp01.id ? "is-active" : ""} onClick={() => loadEntry(entries.pp01)}>
+						PP01
+					</button>
+					<button type="button" className={activeEntry.id === entries.pp02.id ? "is-active" : ""} onClick={() => loadEntry(entries.pp02)}>
+						PP02
+					</button>
+					<button type="button" className={activeEntry.id === entries.pp03.id ? "is-active" : ""} onClick={() => loadEntry(entries.pp03)}>
+						PP03
+					</button>
 				</nav>
 			</header>
 
-			<section className="viewer-shell" ref={viewerRef}>
+			<section className="viewer-sticky" ref={viewerRef}>
 				<div className="viewer-titlebar">
-					<div>
-						<p className="viewer-kind">{activeEntry.kind}</p>
-						<h2>{activeEntry.title}</h2>
+					<div className="viewer-title">{activeEntry.title}</div>
+					<div className={isHomeMode ? "viewer-modes" : "viewer-modes is-hidden"}>
+						<button type="button" className={activeEntry.id === entries.homeA.id ? "is-active" : ""} onClick={() => loadEntry(entries.homeA)}>
+							靜態 A
+						</button>
+						<button type="button" className={activeEntry.id === entries.homeB.id ? "is-active" : ""} onClick={() => loadEntry(entries.homeB)}>
+							動態 B
+						</button>
 					</div>
 					<div className="viewer-actions">
-						{downloadHref ? (
-							<a className="download-link" href={downloadHref} download>
-								下載
+						{activeEntry.download ? (
+							<a className="download-link" href={activeEntry.download} download>
+								下載 PDF
 							</a>
 						) : null}
 						<button type="button" onClick={() => setReloadKey((value) => value + 1)}>
@@ -250,112 +184,110 @@ function App() {
 						</button>
 					</div>
 				</div>
-				<div className="viewer-frame">
+				<div className="viewer">
 					<iframe
 						key={`${activeEntry.id}-${reloadKey}`}
 						src={activeEntry.src}
 						title={activeEntry.title}
-						allow="fullscreen; autoplay; xr-spatial-tracking"
+						allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen; xr-spatial-tracking"
+						allowFullScreen
 					/>
 				</div>
 			</section>
 
-			<main className="content-grid">
-				<section className="panel-section">
-					<div className="section-heading">
-						<p className="kicker">Primary Decks</p>
-						<h2>三篇主簡報</h2>
-					</div>
-					<div className="entry-grid">
-						{primaryEntries.map((entry) => (
-							<EntryCard key={entry.id} entry={entry} active={entry.id === activeEntry.id} onLoad={loadEntry} />
-						))}
-					</div>
-				</section>
-
-				<section className="panel-section">
-					<div className="section-heading">
-						<p className="kicker">PP02 Modes</p>
-						<h2>Web3D / 復刻 / 動畫</h2>
-					</div>
-					<div className="entry-grid compact">
-						{pp02Entries.map((entry) => (
-							<EntryCard key={entry.id} entry={entry} active={entry.id === activeEntry.id} onLoad={loadEntry} />
-						))}
-					</div>
-				</section>
-
-				<section className="panel-section">
-					<div className="section-heading">
-						<p className="kicker">PDF Documents</p>
-						<h2>文件展示與下載</h2>
-					</div>
-					<div className="entry-grid compact">
-						{pdfEntries.map((entry) => (
-							<EntryCard key={entry.id} entry={entry} active={entry.id === activeEntry.id} onLoad={loadEntry} />
-						))}
-					</div>
-				</section>
-
-				<section className="panel-section">
-					<div className="section-heading">
-						<p className="kicker">Second Layer</p>
-						<h2>Web3D 與 HTML 展示</h2>
-					</div>
-					<div className="entry-list">
-						{web3dEntries.map((entry) => (
-							<button
-								key={entry.id}
-								type="button"
-								className={activeEntry.id === entry.id ? "list-item is-active" : "list-item"}
-								data-accent={entry.accent}
-								onClick={() => loadEntry(entry)}
-							>
-								<span>{entry.label}</span>
-								<small>{entry.description}</small>
+			<section className="section">
+				<h2 className="section-title">主簡報欄位</h2>
+				<div className="grid-cards">
+					<article className="card is-pp01">
+						<span>Research Foundation</span>
+						<h3>PP01 論文 GPT</h3>
+						<p>生成式人工智慧在建築物入口設計之整合流程研究：AIGC、BIM/IFC 與 GRC 工法應用。</p>
+						<div className="card-actions is-two">
+							<button type="button" onClick={() => loadEntry(entries.pp01)}>
+								簡報展示
 							</button>
-						))}
-					</div>
-				</section>
+							<button type="button" onClick={() => loadEntry(entries.pp01Pdf)}>
+								PDF 原文
+							</button>
+						</div>
+					</article>
 
-				<section className="panel-section system-panel">
-					<div className="section-heading">
-						<p className="kicker">Architecture</p>
-						<h2>VRHC 架構</h2>
-					</div>
-					<ul className="status-list">
-						{status.map((item) => (
-							<li key={item}>{item}</li>
-						))}
-					</ul>
-					<p>
-						React 負責互動入口與 viewer 狀態；`public` 保留舊網站資產；Hono Worker 提供 `/api/health`
-						與 `/api/site-map`，Cloudflare Workers 可部署 SPA 與靜態資產。
-					</p>
-				</section>
-			</main>
+					<article className="card is-pp02">
+						<span>Primary Web3D Core</span>
+						<h3>PP02 期刊 Web3D</h3>
+						<p>從 IFC 到互動式 Web3D：結合 AIGC 的建築資訊可視化「類 4D」施工順序展示。</p>
+						<div className="card-actions is-four">
+							<button type="button" onClick={() => loadEntry(entries.pp02)}>
+								簡報展示
+							</button>
+							<button type="button" onClick={() => loadEntry(entries.pp02Exact)}>
+								PPTX復刻
+							</button>
+							<button type="button" onClick={() => loadEntry(entries.pp02Animation)}>
+								PPT動畫
+							</button>
+							<button type="button" onClick={() => loadEntry(entries.pp02Pdf)}>
+								PDF 原文
+							</button>
+						</div>
+					</article>
+
+					<article className="card is-pp03">
+						<span>Technical Extension</span>
+						<h3>PP03 MCP + Bonsai 4D</h3>
+						<p>結合 MCP 之 Blender Bonsai BIM 4D 應用分析：AI Agent 語意驅動工作流。</p>
+						<div className="card-actions is-five">
+							<button type="button" onClick={() => loadEntry(entries.pp03)}>
+								簡報展示
+							</button>
+							<button type="button" onClick={() => loadEntry(entries.poster)}>
+								海報
+							</button>
+							<button type="button" onClick={() => loadEntry(entries.blender)}>
+								2026BlenderBIM(建研所)
+							</button>
+							<button type="button" onClick={() => loadEntry(entries.pp03Pdf)}>
+								PDF 原文
+							</button>
+							<button type="button" className="full-width" onClick={() => loadEntry(entries.rtx)}>
+								Architectural Design With Agents on NVIDIA RTX Spark
+							</button>
+						</div>
+					</article>
+				</div>
+			</section>
+
+			<section className="section">
+				<h2 className="section-title">第二層 Web3D 展示入口</h2>
+				<div className="file-list">
+					<FileButton entry={entries.journalIndex} label="Journal_Index.html" onLoad={loadEntry} />
+					<FileButton entry={entries.journalWeb} label="Journal_Web.html" tag="靜態展示" onLoad={loadEntry} />
+					<FileButton entry={entries.journalWebAni} label="Journal_WebAni.html" tag="動態展示" onLoad={loadEntry} />
+					<FileButton entry={entries.web3dTech} label="PPj.YY3DW_web3d.html" tag="技術整理" onLoad={loadEntry} />
+					<FileButton entry={entries.glbAni} label="glb.3js_007AniE.html" tag="GLB 動態" onLoad={loadEntry} />
+					<FileButton entry={entries.ifcViewer} label="GLB_IFC_http_server_viewer.html" tag="IFC 載入器" onLoad={loadEntry} />
+				</div>
+			</section>
 		</div>
 	);
 }
 
-function EntryCard({
+function FileButton({
 	entry,
-	active,
+	label,
+	tag,
 	onLoad,
 }: {
 	entry: Entry;
-	active: boolean;
+	label: string;
+	tag?: string;
 	onLoad: (entry: Entry) => void;
 }) {
 	return (
-		<article className={active ? "entry-card is-active" : "entry-card"} data-accent={entry.accent}>
-			<span>{entry.kind}</span>
-			<h3>{entry.title}</h3>
-			<p>{entry.description}</p>
-			<button type="button" onClick={() => onLoad(entry)}>
-				展示
-			</button>
-		</article>
+		<button type="button" className="file-item" onClick={() => onLoad(entry)}>
+			<span>{label}</span>
+			{tag ? <small>{tag}</small> : null}
+		</button>
 	);
 }
 

@@ -3,266 +3,287 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PP01 論文 GPT</title>
+  <title>PP01 論文口試簡報 40 分鐘</title>
   <link rel="stylesheet" href="../reveal.js/dist/reveal.css">
   <link rel="stylesheet" href="../reveal.js/dist/theme/white.css">
-  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
   <style>
-    :root { --accent: #003049; }
-
     :root {
-      color-scheme: light;
-      --bg: #f4f4f2;
+      --bg: #f6f5ef;
       --paper: #ffffff;
-      --ink: #111111;
-      --muted: #555555;
-      --line: #111111;
-      --teal: #003049; /* Bauhaus Blue */
-      --brick: #d62828; /* Bauhaus Red */
-      --gold: #fcbf49; /* Bauhaus Yellow */
+      --ink: #101418;
+      --muted: #4f5b62;
+      --line: #101418;
+      --red: #c9302c;
+      --teal: #0b6f78;
+      --gold: #f5b841;
+      --blue: #214e7a;
     }
     .reveal {
       font-family: "Noto Sans TC", "Segoe UI", Arial, sans-serif;
       color: var(--ink);
       background-color: var(--bg);
       background-image:
-        linear-gradient(rgba(0, 48, 73, 0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 48, 73, 0.04) 1px, transparent 1px);
-      background-size: 20px 20px;
+        linear-gradient(rgba(16,20,24,0.055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(16,20,24,0.055) 1px, transparent 1px);
+      background-size: 22px 22px;
     }
     .reveal .slides { text-align: left; }
-    .reveal .slides section { box-sizing: border-box; }
-    .reveal h1, .reveal h2, .reveal h3 {
-      font-family: 'Oswald', 'Noto Sans TC', sans-serif;
-      letter-spacing: -0.01em;
-      text-transform: uppercase;
+    .reveal section { box-sizing: border-box; padding: 34px 38px !important; }
+    .reveal h1, .reveal h2 {
+      font-family: "Oswald", "Noto Sans TC", sans-serif;
+      font-weight: 700;
+      letter-spacing: 0;
       line-height: 1.05;
       color: var(--ink);
-      font-weight: 700;
+      margin: 0 0 20px;
     }
-    .reveal h1 { font-size: 2.38em; max-width: 1040px; }
-    .reveal h2 { font-size: 1.62em; margin-bottom: 0.25em; }
-    .reveal h3 { font-size: 0.82em; color: var(--accent); margin: 0 0 0.45em; text-transform: uppercase; }
-    .reveal p, .reveal li { color: var(--muted); font-size: 0.58em; line-height: 1.6; font-weight: 700; }
+    .reveal h1 { font-size: 2.25em; max-width: 880px; }
+    .reveal h2 { font-size: 1.62em; max-width: 760px; }
+    .reveal p, .reveal li { font-size: 0.54em; line-height: 1.55; color: var(--muted); font-weight: 700; }
     .kicker {
-      color: var(--brick);
-      font-family: 'Oswald', sans-serif;
-      font-size: 0.4em;
-      font-weight: 700;
-      letter-spacing: 0.16em;
+      font-family: "Oswald", sans-serif;
+      color: var(--red);
+      font-size: 0.34em;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      margin-bottom: 1.2em;
+      margin-bottom: 16px;
     }
-    .lead { max-width: 920px; font-size: 0.72em !important; color: #333333 !important; }
-    .title-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
-      gap: 34px;
-      align-items: center;
+    .lead { color: #243038 !important; font-size: 0.66em !important; max-width: 760px; }
+    .time {
+      position: absolute;
+      right: 38px;
+      top: 30px;
+      border: 3px solid var(--line);
+      background: var(--gold);
+      padding: 6px 10px;
+      font-family: "Oswald", sans-serif;
+      font-size: 0.34em;
+      box-shadow: 4px 4px 0 var(--line);
     }
     .split {
       display: grid;
-      grid-template-columns: minmax(0, 0.95fr) minmax(300px, 1.05fr);
-      gap: 28px;
+      grid-template-columns: minmax(0, 0.92fr) minmax(420px, 1.08fr);
+      gap: 30px;
       align-items: center;
     }
-    .panel-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 24px; }
-    .panel {
-      border: 3px solid var(--line);
-      background: #fff;
-      padding: 16px;
-      min-height: 112px;
-      box-shadow: 4px 4px 0px #111111;
-      border-radius: 0;
-    }
-    .panel p { font-size: 0.5em; }
-    .statement {
-      border: 3px solid var(--line);
-      border-left: 12px solid var(--accent);
-      background: #fff;
-      padding: 24px;
-      max-width: 1000px;
-      box-shadow: 4px 4px 0px #111111;
-      border-radius: 0;
-    }
-    .statement p { font-size: 0.76em !important; color: var(--ink) !important; }
-    .side-stage {
-      height: 420px;
-      border: 3px solid var(--line);
-      background:
-        linear-gradient(135deg, color-mix(in srgb, var(--accent) 20%, transparent), transparent 45%),
-        linear-gradient(315deg, rgba(214, 40, 40, 0.15), transparent 38%),
-        #fff;
+    .copy ul { margin-top: 22px; padding-left: 1.2em; }
+    .copy li { margin: 0 0 12px; }
+    .visual {
+      margin: 0;
+      border: 4px solid var(--line);
+      background: var(--paper);
+      min-height: 430px;
+      max-height: 520px;
       display: grid;
-      place-items: center;
-      padding: 22px;
-      text-align: center;
-      box-shadow: 6px 6px 0px #111111;
-      border-radius: 0;
-    }
-    .side-stage strong { color: var(--accent); font-family: 'Oswald', sans-serif; font-size: 1.1em; line-height: 1.25; white-space: pre-line; text-transform: uppercase; }
-    .flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 12px; }
-    .flow .step { border: 3px solid var(--line); background: #fff; padding: 10px; min-height: 108px; box-shadow: 4px 4px 0px #111111; border-radius: 0; }
-    .flow b { color: var(--accent); font-size: 0.4em; display: block; margin-bottom: 0.3em; font-family: 'Oswald', sans-serif; }
-    .flow p { font-size: 0.43em; line-height: 1.4; }
-    .media-frame {
-      border: 3px solid var(--line);
-      background: #fff;
-      min-height: 360px;
-      display: grid;
-      place-items: center;
+      grid-template-rows: 1fr auto;
+      box-shadow: 8px 8px 0 var(--line);
       overflow: hidden;
-      box-shadow: 6px 6px 0px #111111;
-      border-radius: 0;
     }
-    .media-frame img {
-      display: block;
+    .visual img {
       width: 100%;
       height: 100%;
-      max-height: 520px;
+      min-height: 390px;
       object-fit: contain;
+      background: #fdfdfb;
     }
-    .caption { color: var(--muted) !important; font-size: 0.38em !important; margin-top: 18px; }
-    .navlinks { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
-    .navlinks a {
+    .visual figcaption {
+      border-top: 3px solid var(--line);
+      padding: 8px 12px;
+      font-size: 0.34em;
+      color: var(--muted);
+      font-weight: 700;
+      background: #fff;
+    }
+    .hero-media {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+    .hero-media .visual {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      box-shadow: none;
+      background: #111;
+      max-height: none;
+    }
+    .hero-media .visual img { object-fit: cover; min-height: 100%; filter: saturate(0.9) contrast(1.02); }
+    .hero-media figcaption { display: none; }
+    .hero-copy {
+      position: relative;
+      z-index: 1;
+      width: min(840px, 75%);
+      background: rgba(246,245,239,0.92);
+      border: 4px solid var(--line);
+      padding: 34px;
+      box-shadow: 10px 10px 0 var(--line);
+    }
+    .meta {
+      margin-top: 28px;
+      font-size: 0.36em;
+      color: var(--muted);
+      font-weight: 900;
+    }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 26px;
+    }
+    .card {
+      min-height: 98px;
       border: 3px solid var(--line);
       background: #fff;
-      color: var(--accent);
-      text-decoration: none;
-      padding: 8px 12px;
+      padding: 14px 16px;
+      box-shadow: 5px 5px 0 var(--line);
+    }
+    .card span {
+      display: inline-block;
+      color: var(--teal);
+      font-family: "Oswald", sans-serif;
       font-size: 0.38em;
-      font-weight: 700;
-      font-family: 'Oswald', sans-serif;
-      box-shadow: 3px 3px 0px #111111;
+      margin-bottom: 6px;
     }
-    .navlinks a:hover {
-      transform: translate(-1px, -1px);
-      box-shadow: 4px 4px 0px #111111;
-      background: var(--gold);
-      color: var(--ink);
-    }
+    .card p { font-size: 0.5em; margin: 0; color: #23313a; }
+    .progress span { background: var(--red) !important; }
     @media (max-width: 900px) {
-      .title-grid, .split, .panel-grid, .flow { grid-template-columns: 1fr; }
-      .side-stage { height: 320px; }
+      .reveal section { padding: 22px 18px !important; overflow-y: auto; }
+      .split, .card-grid { grid-template-columns: 1fr; }
+      .reveal h1 { font-size: 1.48em; }
+      .reveal h2 { font-size: 1.16em; }
+      .reveal p, .reveal li { font-size: 0.68em; }
+      .lead { font-size: 0.76em !important; }
+      .visual { min-height: 250px; max-height: 360px; box-shadow: 4px 4px 0 var(--line); }
+      .visual img { min-height: 220px; }
+      .hero-copy { width: auto; padding: 20px; }
+      .time { position: static; display: inline-block; margin-bottom: 14px; }
     }
-    @media (max-width: 640px) {
-      .reveal .slides section { height: 100%; overflow-y: auto; padding: 18px 16px !important; }
-      .reveal h1 { font-size: 1.6em; line-height: 1.12; }
-      .reveal h2 { font-size: 1.18em; line-height: 1.16; }
-      .reveal p, .reveal li { font-size: 0.72em; line-height: 1.48; }
-      .kicker { font-size: 0.5em; margin-bottom: 0.8em; }
-      .lead { font-size: 0.82em !important; line-height: 1.5 !important; }
-      .panel, .statement, .flow .step { padding: 14px; min-height: auto; box-shadow: 2px 2px 0px #111111; }
-      .statement { border-left-width: 6px; }
-      .statement p { font-size: 0.86em !important; }
-      .side-stage { height: 220px; box-shadow: 3px 3px 0px #111111; }
-      .side-stage strong { font-size: 0.88em; }
-      .flow b { font-size: 0.55em; }
-      .flow p, .panel p { font-size: 0.66em; }
-      .navlinks a { font-size: 0.55em; box-shadow: 2px 2px 0px #111111; }
-    }
-
   </style>
 </head>
 <body>
   <div class="reveal">
     <div class="slides">
+<section data-transition="fade" data-slide="01"><div class="hero-media"><figure class="visual"><img src="../assets/pp01-docx/fig-61.png" alt="案例完成狀態：雅園會館入口造型"><figcaption>案例完成狀態：雅園會館入口造型</figcaption></figure></div><div class="hero-copy"><div class="kicker">PP01 / Oral Defense</div><div class="time">1:00</div><h1>生成式人工智慧在建築物入口之設計與施工之研究</h1><p class="lead">以台中雅園會館為例，說明 AIGC 如何從概念生成走向 BIM/IFC 整合與 GRC 施工落地。</p><div class="meta">朝陽科技大學視傳系 / 碩士論文口試版 / 40 min</div></div><aside class="notes">開場先講一句主張：本研究不是討論 AI 畫圖，而是討論 AI 生成內容如何被轉譯成可施工的建築資訊流程。</aside></section>
 
-      <section>
-        <div class="title-grid">
-          <div>
-            <div class="kicker">PP01 / Research Foundation</div>
-            <h1>生成式人工智慧在建築物入口之設計與施工之研究</h1>
-            <p class="lead">以台中雅園會館為例：AIGC、BIM/IFC 與 GRC 工法的開放式整合流程</p>
-            <div class="navlinks">
-              <a href="index.html">回總入口</a>
-              <a href="PP02_reveal.html">PP02 Web3D</a>
-            </div>
-          </div>
-          <div class="side-stage"><strong>AIGC
-BIM
-IFC
-GRC</strong></div>
-        </div>
-      </section>
+<section data-transition="slide" data-slide="02"><div class="kicker">Agenda / 40 min</div><div class="time">1:00</div><h2>口試簡報節奏</h2><p class="lead">以「問題 → 方法 → 實證 → 貢獻」組織，讓委員快速看見研究價值與可驗證性。</p><div class="card-grid"><div class="card fragment fade-up"><span>01</span><p>研究背景、問題與貢獻：6 分鐘</p></div>
+<div class="card fragment fade-up"><span>02</span><p>文獻缺口與研究方法：10 分鐘</p></div>
+<div class="card fragment fade-up"><span>03</span><p>雅園會館案例執行：18 分鐘</p></div>
+<div class="card fragment fade-up"><span>04</span><p>結論、限制與 Q&amp;A 鋪陳：6 分鐘</p></div></div><aside class="notes">提醒自己不要在文獻回顧停太久。40 分鐘的重心應放在方法框架與案例驗證。</aside></section>
 
-      <section data-transition="slide">
-        <div class="kicker">PP01 / Research Foundation</div>
-        <h2>AIGC 不只是圖像生成，而是建築流程的開放式協作引擎</h2>
-        <div class="statement fragment fade-up slow"><p>本篇作為三篇簡報的背景與方法論基礎，說明生成式 AI 如何串接 BIM、IFC、Blender/Rhino/Revit 與 GRC 工法。</p></div>
-        <div class="panel-grid"><div class="panel fragment fade-up"><h3>研究案例</h3><p>研究案例：台中雅園會館入口</p></div><div class="panel fragment fade-up"><h3>核心路線</h3><p>核心路線：AIGC -&gt; BIM/IFC -&gt; GRC 施工</p></div><div class="panel fragment fade-up"><h3>銜接 PP02</h3><p>銜接 PP02：將模型與流程轉成 Web3D 展示</p></div></div>
-      </section>
+<section data-transition="slide" data-slide="03"><div class="kicker">Problem</div><div class="time">2:00</div><div class="split"><div class="copy"><h2>AIGC 的建築價值，卡在「可施工性」</h2><p class="lead">AIGC 能快速產生概念，但影像本身缺少幾何拓樸、材料厚度、構件屬性與施工邏輯。</p><ul><li class="fragment fade-up">生成影像偏向視覺語意，BIM/IFC 需要可驗證資料</li>
+<li class="fragment fade-up">自由曲面入口牽涉造型、結構、材料與現場工序</li>
+<li class="fragment fade-up">研究目標是建立從生成到建構的轉譯流程</li></ul></div><figure class="visual"><img src="../assets/pp01-docx/fig-03.jpeg" alt="AIGC 建築意象：高表現力，但尚未成為工程資料"><figcaption>AIGC 建築意象：高表現力，但尚未成為工程資料</figcaption></figure></div><aside class="notes">用這張建立痛點：漂亮圖像不是終點，工程端需要可量測、可分件、可協作的資訊。</aside></section>
 
-      <section data-transition="slide">
-        <div class="kicker">Research Context</div>
-        <h2>研究背景：AIGC 進入建築設計流程</h2>
-        <div class="statement fragment fade-up slow"><p>傳統建築流程常把概念生成、模型整合與施工落地切成不同工具與不同階段；AIGC 提供重新串接這些環節的機會。</p></div>
-        <div class="panel-grid"><div class="panel fragment fade-up"><h3>生成式 AI 從圖像工具轉為設計協作工具</h3><p>生成式 AI 從圖像工具轉為設計協作工具</p></div><div class="panel fragment fade-up"><h3>入口造型是視覺、結構、材料與施工整合的高複雜場域</h3><p>入口造型是視覺、結構、材料與施工整合的高複雜場域</p></div><div class="panel fragment fade-up"><h3>研究需要從概念效果走向可驗證、可施工、可溝通的流程</h3><p>研究需要從概念效果走向可驗證、可施工、可溝通的流程</p></div></div>
-      </section>
+<section data-transition="slide" data-slide="04"><div class="kicker">Research Questions</div><div class="time">2:00</div><h2>三個研究問題</h2><p class="lead">研究問題彼此銜接，從設計生成、資料整合一路推進到施工落地。</p><div class="card-grid"><div class="card fragment fade-up"><span>01</span><p>RQ1：如何以 AIGC 生成具設計語意的建築構想？</p></div>
+<div class="card fragment fade-up"><span>02</span><p>RQ2：AIGC 生成內容能否透過開源軟體與開放格式整合進 BIM/IFC？</p></div>
+<div class="card fragment fade-up"><span>03</span><p>RQ3：AIGC-BIM-GRC 是否能形成可重現且具擴展性的開放流程？</p></div></div><aside class="notes">三個問題不要念太快。每一題都對應後面一個章節：AIGC、BIM/IFC、GRC。</aside></section>
 
-      <section data-transition="slide">
-        <div class="kicker">Research Questions</div>
-        <h2>研究問題：如何從生成式概念走向可施工構件</h2>
-        <div class="statement fragment fade-up slow"><p>關鍵不只是產生漂亮圖像，而是讓概念能進入 BIM/IFC、材料工法與施工階段。</p></div>
-        <div class="panel-grid"><div class="panel fragment fade-up"><h3>建築設計如何從 AIGC 概念轉成可建模資料</h3><p>建築設計如何從 AIGC 概念轉成可建模資料</p></div><div class="panel fragment fade-up"><h3>BIM/IFC 如何支援跨軟體整合與資料交換</h3><p>BIM/IFC 如何支援跨軟體整合與資料交換</p></div><div class="panel fragment fade-up"><h3>GRC 工法如何承接自由曲面與入口構件落地</h3><p>GRC 工法如何承接自由曲面與入口構件落地</p></div></div>
-      </section>
+<section data-transition="slide" data-slide="05"><div class="kicker">Case</div><div class="time">2:00</div><div class="split"><div class="copy"><h2>為什麼選雅園會館入口</h2><p class="lead">這是一個具備真實設計壓力、自由曲面複雜度與施工限制的案例，可以檢驗流程是否真正落地。</p><ul><li class="fragment fade-up">高曲率自由曲面，具雕塑性與入口儀式感</li>
+<li class="fragment fade-up">原始 DWG、3ds Max 高模存在對位與拓樸問題</li>
+<li class="fragment fade-up">GRC 施工需面對分件、厚度、鋼構偏差與工期壓力</li></ul></div><figure class="visual"><img src="../assets/pp01-docx/fig-36.jpeg" alt="雅園會館入口效果與現況比對"><figcaption>雅園會館入口效果與現況比對</figcaption></figure></div><aside class="notes">把案例定位成研究場域，而不是作品展示。委員要聽到為何它能驗證研究問題。</aside></section>
 
-      <section data-transition="slide">
-        <div class="kicker">Technology Map</div>
-        <h2>文獻與技術脈絡：AIGC、BIM、IFC 與材料工法</h2>
-        <div class="statement fragment fade-up slow"><p>PP01 建立的是一張技術地圖，讓後續 PP02 的 Web3D 與 PP03 的 MCP/Bonsai 4D 有共同語言。</p></div>
-        <div class="panel-grid"><div class="panel fragment fade-up"><h3>AIGC</h3><p>AIGC：概念生成、快速迭代與多代理協同</p></div><div class="panel fragment fade-up"><h3>BIM/IFC</h3><p>BIM/IFC：跨軟體模型資料與建築資訊語意</p></div><div class="panel fragment fade-up"><h3>GRC</h3><p>GRC：材料科技、自由曲面構件與施工落地</p></div></div>
-      </section>
+<section data-transition="slide" data-slide="06"><div class="kicker">Literature Gap</div><div class="time">2:00</div><div class="split"><div class="copy"><h2>文獻缺口：從圖像生成到工程資訊的中段不足</h2><p class="lead">既有研究多談概念生成或單點工具，較少完整處理語意、幾何、IFC 與材料施工之間的轉譯。</p><ul><li class="fragment fade-up">AIGC 研究偏重視覺輸出，較少處理建構資料</li>
+<li class="fragment fade-up">BIM/IFC 研究重視互通，但與生成式設計連結仍不足</li>
+<li class="fragment fade-up">自由曲面材料落地需要可操作的工法與驗證節點</li></ul></div><figure class="visual"><img src="../assets/pp01-docx/fig-07.png" alt="多代理與 Text-to-BIM 文獻脈絡"><figcaption>多代理與 Text-to-BIM 文獻脈絡</figcaption></figure></div><aside class="notes">這頁說明本研究不是單純做案例，而是補一個學術上的斷點。</aside></section>
 
-      <section data-transition="slide">
-        <div class="kicker">Method</div>
-        <h2>研究方法：開放式 AIGC-BIM-IFC 流程</h2>
-        <div class="statement fragment fade-up slow"><p>研究方法以開放流程取代封閉工具鏈，讓 AI、模型、材料與展示可以在同一條管線上迭代。</p></div>
-        <div class="panel-grid"><div class="panel fragment fade-up"><h3>概念生成層</h3><p>概念生成層：AIGC 與提示詞迭代</p></div><div class="panel fragment fade-up"><h3>模型整合層</h3><p>模型整合層：Blender / Rhino / Revit / IFC</p></div><div class="panel fragment fade-up"><h3>落地驗證層</h3><p>落地驗證層：GRC 製作、施工階段與展示溝通</p></div></div>
-      </section>
+<section data-transition="slide" data-slide="07"><div class="kicker">Method</div><div class="time">2:00</div><div class="split"><div class="copy"><h2>研究方法：混合研究與技術設計驗證</h2><p class="lead">本研究以文獻整合建立理論框架，再以雅園會館案例進行流程建構與技術驗證。</p><ul><li class="fragment fade-up">理論層：文獻分析與設計理論整合</li>
+<li class="fragment fade-up">系統層：建立開放式 AIGC-BIM 流程模型</li>
+<li class="fragment fade-up">實踐層：以雅園會館驗證流程可行性</li></ul></div><figure class="visual"><img src="../assets/pp01-docx/fig-23.png" alt="研究方法層級與策略對照"><figcaption>研究方法層級與策略對照</figcaption></figure></div><aside class="notes">這頁要讓委員知道研究不是心得式描述，而有方法層級。</aside></section>
 
-      <section data-transition="slide">
-        <div class="kicker">Case</div>
-        <h2>案例執行：台中雅園會館入口</h2>
-        <div class="statement fragment fade-up slow"><p>案例作為研究驗證場域，將入口造型從設計效果、3D 模型、構件邏輯一路推進到材料與施工。</p></div>
-        <div class="panel-grid"><div class="panel fragment fade-up"><h3>設計生成</h3><p>設計生成：AIGC 影像與概念探索</p></div><div class="panel fragment fade-up"><h3>模型整合</h3><p>模型整合：Blender / Rhino / Revit 的幾何與資料串接</p></div><div class="panel fragment fade-up"><h3>施工落地</h3><p>施工落地：GRC 製作、分件與現場施工階段</p></div></div>
-      </section>
+<section data-transition="slide" data-slide="08"><div class="kicker">Framework</div><div class="time">2:00</div><div class="split"><div class="copy"><h2>三層概念模型：生成層、整合層、落地層</h2><p class="lead">流程把 AIGC 的語意輸出轉成幾何模型，再轉入 BIM/IFC 與材料施工。</p><ul><li class="fragment fade-up">生成層：AIGC 進行意象生成與語意提示</li>
+<li class="fragment fade-up">整合層：Blender、Rhino、Revit/Bonsai 完成幾何與資訊整合</li>
+<li class="fragment fade-up">落地層：GRC/UHPC、Web/XR 與施工驗證</li></ul></div><figure class="visual"><img src="../assets/pp01-docx/fig-30.png" alt="三層概念模型"><figcaption>三層概念模型</figcaption></figure></div><aside class="notes">用三層模型作為後面案例的目錄。後面講案例時反覆回到這三層。</aside></section>
 
-      <section data-transition="slide">
-        <div class="kicker">Contribution</div>
-        <h2>研究貢獻：補足 AIGC 在建築落地應用中的斷點</h2>
-        <div class="statement fragment fade-up slow"><p>PP01 的重點在於建立從 AI 概念到施工實務的完整論述，並為 PP02/PP03 的 Web3D 與自動化工作流提供基礎。</p></div>
-        <div class="panel-grid"><div class="panel fragment fade-up"><h3>補足 AIGC 在建築應用中的學理與實務空白</h3><p>補足 AIGC 在建築應用中的學理與實務空白</p></div><div class="panel fragment fade-up"><h3>建立 AIGC、BIM/IFC 與 GRC 工法整合流程</h3><p>建立 AIGC、BIM/IFC 與 GRC 工法整合流程</p></div><div class="panel fragment fade-up"><h3>為建築產業數位轉型與智慧施工提供案例</h3><p>為建築產業數位轉型與智慧施工提供案例</p></div></div>
-      </section>
+<section data-transition="slide" data-slide="09"><div class="kicker">OABIF</div><div class="time">3:00</div><div class="split"><div class="copy"><h2>OABIF：Open AIGC-BIM Integration Framework</h2><p class="lead">以流程為平台，將資料標準、節點自動化與版本治理組成可審計、可替換、可重現的生產鏈。</p><ul><li class="fragment fade-up">Data：IFC、GLB/OpenUSD、JSON/CSV</li>
+<li class="fragment fade-up">Generation：Stable Diffusion、ComfyUI、Blender Python</li>
+<li class="fragment fade-up">Integration：BlenderBIM、Rhino/Grasshopper、IfcOpenShell</li>
+<li class="fragment fade-up">Validation：Twinmotion/UE5、ifc.js、Web/XR</li>
+<li class="fragment fade-up">Governance：Git、CI、授權與版本治理</li></ul></div><figure class="visual"><img src="../assets/pp01-docx/fig-32.png" alt="OABIF 五層開放流程模型"><figcaption>OABIF 五層開放流程模型</figcaption></figure></div><aside class="notes">這是論文最像方法論貢獻的一頁。要講清楚：不是取代某套軟體，而是把流程主權拉回來。</aside></section>
 
-      <section data-transition="slide">
-        <div class="kicker">Bridge</div>
-        <h2>銜接 PP02：從研究流程走向互動式 Web3D 展示</h2>
-        <div class="statement fragment fade-up slow"><p>PP01 建立流程，PP02 將 IFC/GLB 與模型展示變成瀏覽器可操作的學術簡報主體。</p></div>
-        <div class="panel-grid"><div class="panel fragment fade-up"><h3>PP01</h3><p>PP01：提出 AIGC + BIM/IFC + GRC 的研究流程</p></div><div class="panel fragment fade-up"><h3>PP02</h3><p>PP02：把模型與類 4D 敘事轉成 Web3D 展示</p></div><div class="panel fragment fade-up"><h3>PP03</h3><p>PP03：再把工作流推進到 MCP + Bonsai BIM 4D 自動化</p></div></div>
-      </section>
+<section data-transition="slide" data-slide="10"><div class="kicker">Toolchain</div><div class="time">2:00</div><div class="split"><div class="copy"><h2>工具鏈不是目的，流程可重現才是目的</h2><p class="lead">研究採用開源與商用工具並行，目標是讓每個節點都能被檢查、替換與重建。</p><ul><li class="fragment fade-up">AIGC：Midjourney、Stable Diffusion、ComfyUI</li>
+<li class="fragment fade-up">幾何與 BIM：Blender/Bonsai、Rhino、Revit、IfcOpenShell</li>
+<li class="fragment fade-up">展示與驗證：GLB、ifc.js、Twinmotion、UE5、Web3D</li></ul></div><figure class="visual"><img src="../assets/pp01-docx/fig-33.png" alt="從 AIGC 到 BIM/XR 的流程關係"><figcaption>從 AIGC 到 BIM/XR 的流程關係</figcaption></figure></div><aside class="notes">這頁要避免像軟體清單。重點是每個工具在流程中的責任與輸入輸出。</aside></section>
 
+<section data-transition="slide" data-slide="11"><div class="kicker">Validation</div><div class="time">2:00</div><div class="split"><div class="copy"><h2>驗證指標：把流程變成可檢核的研究</h2><p class="lead">本研究以幾何精度、IFC 語意、自動化、重現性與 Web/XR 效能作為流程檢核軸線。</p><ul><li class="fragment fade-up">幾何精度目標：相對偏差小於等於 10 mm</li>
+<li class="fragment fade-up">IFC 語意覆蓋率目標：大於等於 90%</li>
+<li class="fragment fade-up">重現成功率目標：同版本重建 100%</li>
+<li class="fragment fade-up">Web/XR 效能：首屏小於等於 5 秒，場景大於等於 30 FPS</li></ul></div><figure class="visual"><img src="../assets/pp01-docx/fig-25.png" alt="研究驗證流程與指標"><figcaption>研究驗證流程與指標</figcaption></figure></div><aside class="notes">若委員追問數據來源，可回到論文中 GRC 模具與施工容許誤差、IFC 欄位需求，以及 Web 展示效能要求。</aside></section>
+
+<section data-transition="slide" data-slide="12"><div class="kicker">Case Layer 1</div><div class="time">3:00</div><div class="split"><div class="copy"><h2>設計生成層：AIGC 作為語意擴張工具</h2><p class="lead">AIGC 在本案中不直接輸出工程模型，而是協助生成造型語彙、光影方向與風格候選。</p><ul><li class="fragment fade-up">多輪影像生成縮短初期構想迭代時間</li>
+<li class="fragment fade-up">設計師篩選光感、曲面厚薄、入口框景與視覺飽和度</li>
+<li class="fragment fade-up">AIGC 提供語意方向，工程模型仍需重建</li></ul></div><figure class="visual"><img src="../assets/pp01-docx/fig-40.jpeg" alt="AIGC 設計流程與設計語彙探索"><figcaption>AIGC 設計流程與設計語彙探索</figcaption></figure></div><aside class="notes">強調本研究沒有把 AI 神化：AI 不是直接拿去施工，而是前端語意與變體探索。</aside></section>
+
+<section data-transition="slide" data-slide="13"><div class="kicker">Data Problem</div><div class="time">2:00</div><div class="split"><div class="copy"><h2>原始資料問題：DWG 與高模無法直接施工</h2><p class="lead">原始設計資料存在 Z 軸錯誤、尺度對位困難、高面數與拓樸破碎等問題。</p><ul><li class="fragment fade-up">DWG Z 軸錯誤導致 2D/3D 對位不可靠</li>
+<li class="fragment fade-up">3ds Max 高模只適合視覺表現，不適合分件與 IFC 屬性標註</li>
+<li class="fragment fade-up">因此必須建立可追溯的幾何與語意主幹</li></ul></div><figure class="visual"><img src="../assets/pp01-docx/fig-38.jpeg" alt="DWG 圖資與模型對位問題"><figcaption>DWG 圖資與模型對位問題</figcaption></figure></div><aside class="notes">這頁是轉折：從設計端進入工程端。說明為何需要 Blender/Rhino/Revit 流程。</aside></section>
+
+<section data-transition="slide" data-slide="14"><div class="kicker">Case Layer 2</div><div class="time">3:00</div><div class="split"><div class="copy"><h2>模型整合層：Blender → Rhino → Revit</h2><p class="lead">模型整合的目標是把視覺模型轉成可編輯、可分件、可定位、可標註的工程模型。</p><ul><li class="fragment fade-up">Blender：拓樸簡化、補面、封閉模型、法線修正</li>
+<li class="fragment fade-up">Rhino/Sub-D：自由曲面工程化重建與分件邏輯</li>
+<li class="fragment fade-up">Revit/BIM：標高、軸線、結構骨架與施工圖基準</li></ul></div><figure class="visual"><img src="../assets/pp01-docx/fig-37.jpeg" alt="模型整合流程：AIGC / Blender / Rhino / BIM"><figcaption>模型整合流程：AIGC / Blender / Rhino / BIM</figcaption></figure></div><aside class="notes">這頁要講出每套軟體的責任邊界，不要只說用了什麼軟體。</aside></section>
+
+<section data-transition="slide" data-slide="15"><div class="kicker">Mesh Cleanup</div><div class="time">2:00</div><div class="split"><div class="copy"><h2>Blender：把高模整理成可被工程流程使用的幾何</h2><p class="lead">高面數與破碎拓樸會造成布林切割、分件與下游匯入失敗，因此前處理是關鍵。</p><ul><li class="fragment fade-up">降低面數與計算負擔</li>
+<li class="fragment fade-up">修補 non-manifold 區域</li>
+<li class="fragment fade-up">統一法線方向與建立乾淨控制網格</li></ul></div><figure class="visual"><img src="../assets/pp01-docx/fig-42.jpeg" alt="Blender un-subdivide、補面與封閉處理"><figcaption>Blender un-subdivide、補面與封閉處理</figcaption></figure></div><aside class="notes">這頁可用來回答技術細節：如果委員問 AI 圖如何變 3D，說明中間需要人工與工具鏈修補。</aside></section>
+
+<section data-transition="slide" data-slide="16"><div class="kicker">Rhino / BIM</div><div class="time">2:00</div><div class="split"><div class="copy"><h2>Rhino 與 Revit：曲面重建、定位與資訊化</h2><p class="lead">Rhino 負責曲率與分件，Revit 負責結構基準、座標對位、施工圖與 IFC 語意。</p><ul><li class="fragment fade-up">Sub-D 維持造型語彙並控制曲率連續</li>
+<li class="fragment fade-up">分件邊界需符合模具、運輸與安裝限制</li>
+<li class="fragment fade-up">BIM 模型成為鋼構、曲面與現場資訊的共同基準</li></ul></div><figure class="visual"><img src="../assets/pp01-docx/fig-44.jpeg" alt="Rhino / Revit 中的曲面、分件與施工圖整合"><figcaption>Rhino / Revit 中的曲面、分件與施工圖整合</figcaption></figure></div><aside class="notes">把 Rhino 和 Revit 的互補講清楚：Rhino 解曲面，Revit 解工程資訊與協同。</aside></section>
+
+<section data-transition="slide" data-slide="17"><div class="kicker">Case Layer 3</div><div class="time">3:00</div><div class="split"><div class="copy"><h2>材料落地層：從模具測試到直塑工法</h2><p class="lead">大型自由曲面在真實工地中不只看精度，也要看成本、工期、吊裝與現場偏差吸收能力。</p><ul><li class="fragment fade-up">小型 3D 列印降低造型溝通落差</li>
+<li class="fragment fade-up">大型 3D 列印與保麗龍陰刻在工期與現場適應性上受限</li>
+<li class="fragment fade-up">直塑工法成為較能吸收現場偏差的落地策略</li></ul></div><figure class="visual"><img src="../assets/pp01-docx/fig-46.jpeg" alt="模具、現場與工法測試"><figcaption>模具、現場與工法測試</figcaption></figure></div><aside class="notes">這頁開始進入口試最有說服力的部分：真實工程會推翻原本看似高科技的方案。</aside></section>
+
+<section data-transition="slide" data-slide="18"><div class="kicker">Segmentation</div><div class="time">2:00</div><div class="split"><div class="copy"><h2>數位分割：把連續曲面轉成可施工單元</h2><p class="lead">數位分割不是簡化造型，而是把曲率、轉折、厚度與運輸限制轉譯成現場可執行語言。</p><ul><li class="fragment fade-up">分件尺寸需符合板車、吊裝與現場操作限制</li>
+<li class="fragment fade-up">轉折線與剖面線提供工匠找形基準</li>
+<li class="fragment fade-up">厚度約 1.5 至 3 cm，需同步考慮補強肋</li></ul></div><figure class="visual"><img src="../assets/pp01-docx/fig-50.jpeg" alt="自由曲面分件、色塊與施工單元規劃"><figcaption>自由曲面分件、色塊與施工單元規劃</figcaption></figure></div><aside class="notes">這頁可講數位模型如何真正進現場：圖面、分件、剖面、厚度，都是施工語言。</aside></section>
+
+<section data-transition="slide" data-slide="19"><div class="kicker">Site Reality</div><div class="time">3:00</div><div class="split"><div class="copy"><h2>現場偏差：鋼構移動 15 cm 與高度差 10 cm</h2><p class="lead">自由曲面會放大任何結構基準偏差，因此 BIM 檢核與直塑工法的彈性成為關鍵。</p><ul><li class="fragment fade-up">鋼構位置橫向移動約 15 cm，若未發現將造成外殼錯位</li>
+<li class="fragment fade-up">預計加高地坪 10 cm 吸收高度差，避免大規模返工</li>
+<li class="fragment fade-up">BIM 的價值在於提前辨識跨工項矛盾</li></ul></div><figure class="visual"><img src="../assets/pp01-docx/fig-54.jpeg" alt="現場鋼構與基準檢核"><figcaption>現場鋼構與基準檢核</figcaption></figure></div><aside class="notes">這是答辯重點。用具體數字證明研究不是停在概念，而是進入現場變數處理。</aside></section>
+
+<section data-transition="slide" data-slide="20"><div class="kicker">Process Learning</div><div class="time">2:00</div><div class="split"><div class="copy"><h2>工程節奏：6 個月建立工法，1 個月完成量產</h2><p class="lead">第一件單元建立曲率語言與施工邏輯，後續 11 件單元才得以快速複製。</p><ul><li class="fragment fade-up">Unit 01 是工法建立期，吸收模型轉譯與現場偏差</li>
+<li class="fragment fade-up">後續單元進入流程複製期，施工節奏明顯加速</li>
+<li class="fragment fade-up">顯示數位分割與直塑流程能形成可複製工序</li></ul></div><figure class="visual"><img src="../assets/pp01-docx/fig-59.jpeg" alt="現場單元製作與安裝進度"><figcaption>現場單元製作與安裝進度</figcaption></figure></div><aside class="notes">這頁把案例升成研究結論：速度不是靠趕工，而是前期流程成熟後的複製效果。</aside></section>
+
+<section data-transition="slide" data-slide="21"><div class="kicker">Result</div><div class="time">2:00</div><div class="split"><div class="copy"><h2>結果：AIGC-BIM-GRC 可形成可落地的整合流程</h2><p class="lead">本研究證明 AIGC 的價值不在單張影像，而在於被整合進可驗證的建築資訊流程。</p><ul><li class="fragment fade-up">AIGC 提升前期造型探索與語意擴張效率</li>
+<li class="fragment fade-up">BIM/IFC 提供座標、構件、屬性與施工圖的共同基準</li>
+<li class="fragment fade-up">GRC 直塑工法回應自由曲面與現場誤差</li></ul></div><figure class="visual"><img src="../assets/pp01-docx/fig-01.jpeg" alt="最終入口完成狀態與施工成果"><figcaption>最終入口完成狀態與施工成果</figcaption></figure></div><aside class="notes">這頁要收束 RQ1-RQ3：生成、整合、落地皆有對應結果。</aside></section>
+
+<section data-transition="slide" data-slide="22"><div class="kicker">Contribution</div><div class="time">2:00</div><h2>研究貢獻</h2><p class="lead">本研究補足 AIGC 建築應用從概念到施工之間的流程斷點，並提出可被後續研究延伸的開放式框架。</p><div class="card-grid"><div class="card fragment fade-up"><span>01</span><p>學理貢獻：提出 AIGC-BIM-IFC-GRC 的流程化論述</p></div>
+<div class="card fragment fade-up"><span>02</span><p>方法貢獻：建立 OABIF 與可檢核的流程指標</p></div>
+<div class="card fragment fade-up"><span>03</span><p>實務貢獻：以雅園會館案例展示自由曲面入口的實作路徑</p></div>
+<div class="card fragment fade-up"><span>04</span><p>展示貢獻：為後續 Web3D、MCP 與 BIM 4D 展示建立基礎</p></div></div><aside class="notes">把貢獻分成學理、方法、實務、展示四類，委員比較容易抓到價值。</aside></section>
+
+<section data-transition="slide" data-slide="23"><div class="kicker">Limitations</div><div class="time">2:00</div><h2>研究限制與後續研究</h2><p class="lead">本研究以單一案例驗證流程，後續可擴展至多案例、更多材料、即時 Web3D 檢核與 MCP 自動化。</p><div class="card-grid"><div class="card fragment fade-up"><span>01</span><p>AIGC 與 BIM 工具快速演進，研究結論具有時效性</p></div>
+<div class="card fragment fade-up"><span>02</span><p>單一案例無法直接推論所有建築型態</p></div>
+<div class="card fragment fade-up"><span>03</span><p>材料與施工驗證受場域、預算與工期條件限制</p></div>
+<div class="card fragment fade-up"><span>04</span><p>後續可串接 Web3D、ifc.js、MCP/Bonsai 與 BIM 4D</p></div></div><aside class="notes">限制要主動講，語氣是研究邊界，不是弱點。最後銜接 PP02/PP03 的技術延伸。</aside></section>
+
+<section data-transition="fade" data-slide="24"><div class="kicker">Defense Q&amp;A</div><div class="time">1:00</div><h2>口試答辯預備題</h2><p class="lead">最後用可預期問題收束，讓 Q&amp;A 回到研究可驗證性與貢獻。</p><div class="card-grid"><div class="card fragment fade-up"><span>01</span><p>AIGC 是否真的參與設計，還是只做視覺輔助？</p></div>
+<div class="card fragment fade-up"><span>02</span><p>為何不用單一 BIM 軟體完成，而要採開放流程？</p></div>
+<div class="card fragment fade-up"><span>03</span><p>OABIF 的可重現性如何被驗證？</p></div>
+<div class="card fragment fade-up"><span>04</span><p>直塑工法是否削弱數位製造的精準性？</p></div>
+<div class="card fragment fade-up"><span>05</span><p>此流程如何擴展到其他建築案例？</p></div></div><aside class="notes">這頁不一定正式講完，但可作為 Q&amp;A 前的安全網。若時間不足，保留畫面讓委員提問。</aside></section>
     </div>
   </div>
   <script src="../reveal.js/dist/reveal.js"></script>
   <script>
-    const mobileQuery = window.matchMedia("(max-width: 640px)");
-    const deckSize = mobileQuery.matches
-      ? { width: 390, height: 760, margin: 0.02, center: false }
-      : { width: 1280, height: 720, margin: 0.05, center: true };
+    const mobile = window.matchMedia("(max-width: 900px)");
     Reveal.initialize({
       hash: true,
       controls: true,
       progress: true,
-      center: deckSize.center,
+      center: !mobile.matches,
+      width: mobile.matches ? 390 : 1280,
+      height: mobile.matches ? 760 : 720,
+      margin: mobile.matches ? 0.02 : 0.045,
+      minScale: 0.18,
+      maxScale: 1.35,
       transition: "slide",
-      width: deckSize.width,
-      height: deckSize.height,
-      margin: deckSize.margin,
-      minScale: 0.2,
-      maxScale: 1.4
+      backgroundTransition: "fade",
     });
-    mobileQuery.addEventListener("change", () => window.location.reload());
+    mobile.addEventListener("change", () => window.location.reload());
   </script>
 </body>
 </html>
